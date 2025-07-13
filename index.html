@@ -1,0 +1,2715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Retirement Planner by VVS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            padding: 1rem;
+            transition: background-color 0.3s ease;
+            padding-bottom: 5rem; /* Add padding to the bottom of the body to make space for the fixed footer */
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2rem;
+            max-width: 900px; /* Wider container for more inputs */
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            position: relative; /* For absolute positioning of form steps */
+            overflow: hidden; /* Hide overflowing steps during transition */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr; /* Two columns on medium screens and up */
+            }
+        }
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            /* Prevent sections from breaking across pages if possible */
+            page-break-inside: avoid;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            transition: color 0.3s ease;
+        }
+        .input-group input, .input-group select, .input-group textarea {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            color: #1f2937;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.3s ease, color 0.3s ease;
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .button {
+            background-color: #3b82f6;
+            color: #ffffff;
+            padding: 0.75rem 2rem; /* Updated padding */
+            border-radius: 9999px; /* Updated border-radius for fully rounded */
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease-in-out; /* Updated transition */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%; /* Full width button */
+            margin-top: 1rem;
+            display: flex; /* Added for icon alignment */
+            align-items: center; /* Added for icon alignment */
+            justify-content: center; /* Center content including icon */
+            gap: 0.5rem; /* Space between icon and text */
+        }
+        .button:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px); /* Updated transform */
+        }
+        .button:active {
+            transform: translateY(0);
+        }
+        .result-section, .recommendation-section { /* Added recommendation-section */
+            grid-column: 1 / -1; /* Span full width */
+            margin-top: 2rem; /* Keep this for on-screen display */
+            padding: 2rem;
+            background-color: #e0f2fe;
+            border-radius: 1.5rem;
+            border: 1px solid #93c5fd;
+            color: #1e40af;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-align: center;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 1rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        .result-section h2, .recommendation-section h2 { /* Added recommendation-section */
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #93c5fd;
+            page-break-inside: avoid; /* Prevent individual items from breaking */
+            align-items: baseline; /* Align text baselines */
+            transition: border-color 0.3s ease;
+        }
+        .result-item span:first-child {
+            flex-shrink: 0; /* Prevent label from shrinking */
+            padding-right: 1rem; /* Add some space between label and value */
+            text-align: left;
+            transition: color 0.3s ease;
+        }
+        .result-item span:last-child {
+            flex-grow: 1; /* Allow value to take remaining space */
+            text-align: right; /* Align value to the right */
+            word-break: break-word; /* Allow long words to break */
+            min-width: 0; /* Important for flex items within flex containers */
+            transition: color 0.3s ease;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+            transition: color 0.3s ease;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px; /* Fixed height for charts */
+            margin-top: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            page-break-inside: avoid; /* Prevent charts from breaking */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .chart-container canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .suggestion-tip {
+            background-color: #d1fae5; /* Light green */
+            color: #065f46; /* Dark green */
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: left;
+            display: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .mandatory-field-error {
+            color: #ef4444;
+            font-weight: 600;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+            transition: color 0.3s ease;
+        }
+        .recommendation-list {
+            list-style: disc;
+            padding-left: 1.5rem;
+            text-align: left;
+            color: #1e40af;
+            font-weight: normal; /* Override bold from parent */
+            page-break-inside: avoid; /* Keep list together */
+            transition: color 0.3s ease;
+        }
+        .recommendation-list li {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        /* Feedback Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modal-content h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #374151;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+        .rating-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .rating-group input[type="radio"] {
+            display: none;
+        }
+        .rating-group label {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #d1d5db; /* Grey stars */
+            transition: color 0.2s ease-in-out;
+        }
+        .rating-group input[type="radio"]:checked ~ label,
+        .rating-group label:hover,
+        .rating-group label:hover ~ label {
+            color: #facc15; /* Yellow stars on hover/checked */
+        }
+        .rating-group label:has(~ input[type="radio"]:checked) {
+            color: #facc15; /* Ensure previous stars also light up */
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        .modal-buttons .button {
+            width: auto;
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            margin-top: 0; /* Override default button margin */
+        }
+        .modal-buttons .close-button {
+            background-color: #6b7280; /* Grey for close */
+        }
+        .modal-buttons .close-button:hover {
+            background-color: #4b5563;
+        }
+        .feedback-error {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: -1rem; /* Adjust margin to fit below rating */
+            text-align: center;
+            display: none;
+            transition: color 0.3s ease;
+        }
+
+        /* Message Box Styles */
+        #messageBox {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #10b981; /* Green for success */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, background-color 0.3s ease;
+            display: flex; /* Use flex to center text if needed */
+            align-items: center;
+            justify-content: center;
+        }
+        #messageBox.error {
+            background-color: #ef4444; /* Red for error */
+        }
+
+        /* PDF specific classes - only applied via @media print */
+        .pdf-branding {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #666;
+            width: 100%; /* Ensure it takes full width for centering */
+            display: none; /* Hidden by default, shown during PDF generation */
+        }
+
+        /* Print-specific styles */
+        @media print {
+            body {
+                background: white !important; /* Force white background */
+                color: black !important; /* Force black text */
+                padding-bottom: 0 !important; /* Remove padding for print */
+            }
+
+            /* Hide interactive elements and modals during print */
+            .button, #feedbackBtn, #printBtn, #scenarioSection, .modal-overlay, #aiCoachBtn, #darkModeToggle, .fixed-footer {
+                display: none !important;
+            }
+
+            /* Ensure main content flows for printing */
+            .container {
+                display: block !important;
+                width: 100% !important;
+                padding: 0 !important; /* Remove container padding for print */
+                box-shadow: none !important; /* Remove shadow for print */
+                border-radius: 0 !important; /* Remove border-radius for print */
+                overflow: visible !important; /* Ensure content is not clipped */
+            }
+
+            /* Force new page for major sections */
+            .page-break {
+                page-break-before: always !important;
+                margin-top: 1rem !important; /* Add a small top margin for new pages */
+            }
+
+            /* Prevent breaking inside these elements */
+            .section, .chart-container, .result-item, .recommendation-list {
+                page-break-inside: avoid !important;
+            }
+
+            /* Adjust margins/padding for print for sections */
+            .result-section, .recommendation-section, #chartsContainer {
+                display: block !important; /* Ensure these are always visible for print */
+                visibility: visible !important;
+                position: relative !important;
+                margin-top: 1rem !important; /* Smaller margin for print */
+                padding: 1rem !important; /* Smaller padding for print */
+                background-color: white !important; /* White background for print */
+                border: none !important; /* No border for print */
+                box-shadow: none !important; /* No shadow for print */
+                border-radius: 0 !important; /* No border-radius for print */
+            }
+
+            /* Ensure charts render correctly for print */
+            .chart-container canvas {
+                max-width: 100% !important;
+                height: auto !important; /* Allow height to adjust */
+                page-break-inside: avoid !important; /* Prevent charts from breaking across pages */
+            }
+
+            /* Branding should be visible in print */
+            .pdf-branding {
+                display: block !important;
+                position: fixed; /* Position at the bottom of each page if possible, or just the last */
+                bottom: 10mm;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 8pt;
+                color: #666;
+                page-break-before: avoid !important;
+            }
+        }
+
+        /* Progressive Form Styles */
+        .form-step {
+            grid-column: 1 / -1; /* Span full width */
+            display: none; /* Hidden by default */
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            position: absolute; /* Position absolutely within container */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 2rem; /* Match container padding */
+            background-color: #ffffff; /* Match container background */
+            border-radius: 1.5rem; /* Match container border-radius */
+            box-sizing: border-box; /* Include padding in width/height */
+            display: flex; /* Use flex for internal layout */
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto; /* Enable scrolling for long steps */
+            transition: background-color 0.3s ease;
+        }
+        .form-step.active {
+            display: flex; /* Show active step */
+            opacity: 1;
+            transform: translateX(0);
+            position: relative; /* Take up space when active */
+        }
+        .form-navigation {
+            grid-column: 1 / -1; /* Span full width */
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1rem;
+            z-index: 10; /* Ensure buttons are above steps */
+        }
+        .form-navigation .button {
+            width: auto; /* Allow buttons to size naturally */
+            flex-grow: 1;
+        }
+        .form-navigation .button.hidden {
+            display: none;
+        }
+        /* Removed .main-buttons-container styles */
+        .privacy-notice {
+            grid-column: 1 / -1; /* Span full width */
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f3f4f6;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* New Fixed Footer Styles */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #e5e7eb;
+            z-index: 50;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06); /* Shadow at the top */
+        }
+        .fixed-footer button {
+            flex: 1;
+            margin: 0 0.5rem;
+        }
+        @media (max-width: 767px) {
+            .fixed-footer {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+                padding: 0.75rem;
+            }
+            .fixed-footer button {
+                margin: 0.5rem 0; /* Adjust margin for vertical stacking */
+            }
+        }
+
+
+        /* Dark Mode Styles */
+        html.dark {
+            /* Body */
+            body {
+                background-color: #1a202c; /* Darker background for body */
+            }
+
+            /* Container */
+            .container {
+                background-color: #2d3748; /* Darker container background */
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            }
+
+            /* Sections (form steps, result, recommendation, scenario) */
+            .section, .result-section, .recommendation-section, .form-step {
+                background-color: #4a5568; /* Even darker for sections */
+                border-color: #4a5568; /* Darker border */
+                color: #e2e8f0; /* Light text */
+            }
+
+            /* Labels and Headings */
+            .input-group label {
+                color: #e2e8f0; /* Light label text */
+            }
+            .result-section h2, .recommendation-section h2 {
+                color: #90cdf4; /* Lighter blue for headings */
+            }
+            h1 {
+                color: #e2e8f0; /* Light heading text */
+            }
+
+            /* Inputs */
+            .input-group input, .input-group select, .input-group textarea {
+                background-color: #2d3748; /* Darker input background */
+                color: #e2e8f0; /* Light input text */
+                border-color: #4a5568; /* Darker input border */
+            }
+            .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+                border-color: #63b3ed; /* Lighter blue focus border */
+                box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.25); /* Lighter shadow */
+            }
+
+            /* Buttons */
+            .button {
+                background-color: #4299e1; /* Lighter blue button */
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.12);
+            }
+            .button:hover {
+                background-color: #3182ce; /* Even lighter blue on hover */
+            }
+            .button.close-button {
+                background-color: #718096; /* Darker grey for close */
+            }
+            .button.close-button:hover {
+                background-color: #5f6b7d;
+            }
+
+            /* Result Items */
+            .result-item {
+                border-color: #6b7280; /* Darker dashed border */
+            }
+            .result-item span:first-child {
+                color: #cbd5e0; /* Light grey for labels */
+            }
+            .result-item span:last-child {
+                color: #e2e8f0; /* Light text for values */
+            }
+
+            /* Error Messages */
+            .error-message, .mandatory-field-error, .feedback-error {
+                color: #fc8181; /* Lighter red for errors */
+            }
+
+            /* Suggestion Tip */
+            .suggestion-tip {
+                background-color: #2f855a; /* Darker green */
+                color: #9ae6b4; /* Lighter green text */
+            }
+
+            /* Chart Container */
+            .chart-container {
+                background-color: #2d3748; /* Darker chart background */
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.12);
+            }
+
+            /* Modals */
+            .modal-content {
+                background-color: #2d3748; /* Darker modal background */
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            }
+            .modal-content h3 {
+                color: #e2e8f0; /* Light modal heading */
+            }
+            .rating-group label {
+                color: #4a5568; /* Darker grey stars */
+            }
+            .rating-group input[type="radio"]:checked ~ label,
+            .rating-group label:hover,
+            .rating-group label:hover ~ label {
+                color: #f6e05e; /* Lighter yellow stars */
+            }
+
+            /* Message Box */
+            #messageBox {
+                background-color: #38a169; /* Darker green for success */
+            }
+            #messageBox.error {
+                background-color: #e53e3e; /* Darker red for error */
+            }
+
+            /* Privacy Notice */
+            .privacy-notice {
+                background-color: #4a5568;
+                border-color: #6b7280;
+                color: #cbd5e0;
+            }
+
+            /* AI Coach Response */
+            #aiCoachResponse {
+                background-color: #2d3748;
+                color: #e2e8f0;
+            }
+            #aiCoachResponse p.text-gray-500 {
+                color: #a0aec0;
+            }
+            #aiCoachResponse p.text-blue-500 {
+                color: #90cdf4;
+            }
+            #aiCoachResponse p.text-red-500 {
+                color: #fc8181;
+            }
+
+            /* Dark mode for fixed footer */
+            .fixed-footer {
+                background-color: #2d3748; /* Darker background */
+                border-top-color: #4a5568; /* Darker border */
+                box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.3), 0 -2px 4px -1px rgba(0, 0, 0, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContent">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4 col-span-full">Comprehensive Retirement Planner</h1>
+
+        <!-- Form Steps Container -->
+        <div id="formStepsContainer" class="col-span-full relative">
+            <!-- Step 1: Global Settings -->
+            <div id="step1" class="form-step active">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Global Settings</h2>
+                <div class="input-group">
+                    <label for="currencySelector">Select Currency:</label>
+                    <select id="currencySelector">
+                        <option value="INR" selected>₹ Indian Rupee (INR)</option>
+                        <option value="USD">$ US Dollar (USD)</option>
+                        <option value="GBP">£ British Pound (GBP)</option>
+                        <option value="EUR">€ Euro (EUR)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="taxRegimeSelector">Tax Regime:</label>
+                    <select id="taxRegimeSelector">
+                        <option value="Indian">Indian Tax Rules</option>
+                        <option value="Simplified">Simplified / International</option>
+                        <!-- Add more complex tax regimes here in future -->
+                    </select>
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn1" class="button hidden">Previous</button>
+                    <button id="nextBtn1" class="button">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Personal Profile -->
+            <div id="step2" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Personal Profile</h2>
+                <div class="input-group">
+                    <label for="currentAge">Current Age (Years)<span class="text-red-500">*</span></label>
+                    <input type="number" id="currentAge" placeholder="e.g., 30" min="1" value="35">
+                    <span id="currentAgeError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="retirementAge">Planned Retirement Age (Years)<span class="text-red-500">*</span></label>
+                    <input type="number" id="retirementAge" placeholder="e.g., 60" min="1" value="58">
+                    <span id="retirementAgeError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="lifeExpectancy">Life Expectancy (Years)<span class="text-red-500">*</span></label>
+                    <input type="number" id="lifeExpectancy" placeholder="e.g., 85" min="1" value="85">
+                    <span id="lifeExpectancyError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="numKids">Number of Kids</label>
+                    <input type="number" id="numKids" placeholder="e.g., 2" min="0" value="2">
+                    <span id="numKidsError" class="error-message"></span>
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn2" class="button">Previous</button>
+                    <button id="nextBtn2" class="button">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Income Details -->
+            <div id="step3" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Income Details</h2>
+                <div class="input-group">
+                    <label for="selfSalary">Current Monthly Salary (Self)<span class="text-red-500">*</span></label>
+                    <input type="number" id="selfSalary" placeholder="e.g., 100000" min="0" value="120000">
+                    <span id="selfSalaryError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="spouseSalary">Current Monthly Salary (Spouse)</label>
+                    <input type="number" id="spouseSalary" placeholder="e.g., 50000" min="0" value="75000">
+                    <span id="spouseSalaryError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="annualIncrementRate">Annual Increment Rate (%)<span class="text-red-500">*</span></label>
+                    <input type="number" id="annualIncrementRate" placeholder="e.g., 5" min="0" step="0.1" value="6">
+                    <span id="annualIncrementRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="annualRentalIncome">Annual Rental Income</label>
+                    <input type="number" id="annualRentalIncome" placeholder="e.g., 120000" min="0" value="60000">
+                    <span id="annualRentalIncomeError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="rentalIncomeGrowthRate">Rental Income Growth Rate (%)</label>
+                    <input type="number" id="rentalIncomeGrowthRate" placeholder="e.g., 3" min="0" step="0.1" value="4">
+                    <span id="rentalIncomeGrowthRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="otherIncome">Other Annual Income</label>
+                    <input type="number" id="otherIncome" placeholder="e.g., 20000" min="0" value="10000">
+                    <span id="otherIncomeError" class="error-message"></span>
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn3" class="button">Previous</button>
+                    <button id="nextBtn3" class="button">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Expense Details -->
+            <div id="step4" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Expense Details</h2>
+                <div class="input-group">
+                    <label for="monthlyLivingExpenses">Current Monthly Living Expenses<span class="text-red-500">*</span></label>
+                    <input type="number" id="monthlyLivingExpenses" placeholder="e.g., 40000" min="0" value="60000">
+                    <span id="monthlyLivingExpensesError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="expenseInflationRate">Expense Inflation Rate (%)<span class="text-red-500">*</span></label>
+                    <input type="number" id="expenseInflationRate" placeholder="e.g., 6" min="0" step="0.1" value="6.5">
+                    <span id="expenseInflationRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="annualTravelBudget">Annual Travel Budget</label>
+                    <input type="number" id="annualTravelBudget" placeholder="e.g., 50000" min="0" value="100000">
+                    <span id="annualTravelBudgetError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="annualEducationCostPerChild">Annual Education Cost Per Child</label>
+                    <input type="number" id="annualEducationCostPerChild" placeholder="e.g., 100000" min="0" value="150000">
+                    <span id="annualEducationCostPerChildError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="educationInflationRate">Education Inflation Rate (%)</label>
+                    <input type="number" id="educationInflationRate" placeholder="e.g., 8" min="0" step="0.1" value="8">
+                    <span id="educationInflationRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="weddingBudgetPerChild">Wedding Budget Per Child</label>
+                    <input type="number" id="weddingBudgetPerChild" placeholder="e.g., 1000000" min="0" value="1500000">
+                    <span id="weddingBudgetPerChildError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="childEducationStartAge">Child Education Start Age (for calculation)</label>
+                    <input type="number" id="childEducationStartAge" placeholder="e.g., 5" min="0" value="5">
+                </div>
+                <div class="input-group">
+                    <label for="childEducationEndAge">Child Education End Age (for calculation)</label>
+                    <input type="number" id="childEducationEndAge" placeholder="e.g., 22" min="0" value="22">
+                </div>
+                <div class="input-group">
+                    <label for="childWeddingAge">Child Wedding Age (for calculation)</label>
+                    <input type="number" id="childWeddingAge" placeholder="e.g., 25" min="0" value="25">
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn4" class="button">Previous</button>
+                    <button id="nextBtn4" class="button">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Liabilities -->
+            <div id="step5" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Liabilities</h2>
+                <div class="input-group">
+                    <label for="totalOutstandingLoans">Total Outstanding Loans</label>
+                    <input type="number" id="totalOutstandingLoans" placeholder="e.g., 5000000" min="0" value="3000000">
+                    <span id="totalOutstandingLoansError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="loanInterestRate">Loan Interest Rate (%)</label>
+                    <input type="number" id="loanInterestRate" placeholder="e.g., 8" min="0" step="0.1" value="7.5">
+                    <span id="loanInterestRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="loanTenure">Loan Tenure (Years)</label>
+                    <input type="number" id="loanTenure" placeholder="e.g., 20" min="0" value="15">
+                    <span id="loanTenureError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="annualPrepayment">Annual Prepayment (Optional)</label>
+                    <input type="number" id="annualPrepayment" placeholder="e.g., 50000" min="0" value="50000">
+                    <span id="annualPrepaymentError" class="error-message"></span>
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn5" class="button">Previous</button>
+                    <button id="nextBtn5" class="button">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 6: Assets -->
+            <div id="step6" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Assets</h2>
+                <div class="input-group">
+                    <label for="currentFinancialCorpus">Current Financial Corpus (Equity, FD, PF, NPS etc.)<span class="text-red-500">*</span></label>
+                    <input type="number" id="currentFinancialCorpus" placeholder="e.g., 1000000" min="0" value="2500000">
+                    <span id="currentFinancialCorpusError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="equityReturnRate">Expected Equity Return Rate (%)<span class="text-red-500">*</span></label>
+                    <input type="number" id="equityReturnRate" placeholder="e.g., 10" min="0" step="0.1" value="12">
+                    <span id="equityReturnRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="realEstateValue">Current Real Estate Value</label>
+                    <input type="number" id="realEstateValue" placeholder="e.g., 5000000" min="0" value="7000000">
+                    <span id="realEstateValueError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="realEstateReturnRate">Expected Real Estate Return Rate (%)</label>
+                    <input type="number" id="realEstateReturnRate" placeholder="e.g., 5" min="0" step="0.1" value="6">
+                    <span id="realEstateReturnRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="goldOtherAssetValue">Gold/Other Asset Value</label>
+                    <input type="number" id="goldOtherAssetValue" placeholder="e.g., 100000" min="0" value="200000">
+                    <span id="goldOtherAssetValueError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="goldOtherAssetReturnRate">Gold/Other Asset Return Rate (%)</label>
+                    <input type="number" id="goldOtherAssetReturnRate" placeholder="e.g., 5" min="0" step="0.1" value="7">
+                    <span id="goldOtherAssetReturnRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="keepPropertiesPostRetirement">Keep Properties Post Retirement?</label>
+                    <select id="keepPropertiesPostRetirement">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn6" class="button">Previous</button>
+                    <button id="nextBtn6" class="button">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 7: Assumptions -->
+            <div id="step7" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Assumptions</h2>
+                <div class="input-group">
+                    <label for="inflationRate">General Inflation Rate (%)<span class="text-red-500">*</span></label>
+                    <input type="number" id="inflationRate" placeholder="e.g., 6" min="0" step="0.1" value="5.5">
+                    <span id="inflationRateError" class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="postRetirementReturnRate">Post-Retirement Return Rate (%)<span class="text-red-500">*</span></label>
+                    <input type="number" id="postRetirementReturnRate" placeholder="e.g., 7" min="0" step="0.1" value="7">
+                    <span id="postRetirementReturnRateError" class="error-message"></span>
+                </div>
+                <div class="form-navigation mt-auto">
+                    <button id="prevBtn7" class="button">Previous</button>
+                    <button id="calculateBtn" class="button">Calculate Retirement Plan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Section -->
+        <div id="livePreviewSection" class="result-section col-span-full">
+            <h2 class="text-blue-800">Live Retirement Snapshot</h2>
+            <div class="result-item">
+                <span>Projected Corpus at Retirement:</span> <span id="liveCorpusAtRetirement">₹0.00</span>
+            </div>
+            <div class="result-item">
+                <span>Required Corpus to Retire:</span> <span id="liveRequiredCorpus">₹0.00</span>
+            </div>
+            <div class="result-item">
+                <span>Live Surplus / Shortfall:</span> <span id="liveSurplusShortfall">₹0.00</span>
+            </div>
+            <div class="result-item">
+                <span>Live Readiness Score:</span> <span id="liveReadinessScore">0/100</span>
+            </div>
+        </div>
+
+        <div id="mandatoryFieldError" class="mandatory-field-error col-span-full">Please fill mandatory fields to help you.</div>
+
+        <!-- Data Privacy Assurance Notice -->
+        <div class="privacy-notice">
+            <strong>Data Privacy Notice:</strong> We do not collect or store your personal or financial data. All inputs stay on your device.
+        </div>
+
+        <!-- Save/Load Scenario Section -->
+        <div class="section col-span-full" id="scenarioSection">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Save/Load Scenarios</h2>
+            <div class="input-group">
+                <label for="scenarioName">Scenario Name:</label>
+                <input type="text" id="scenarioName" placeholder="e.g., My Ideal Plan">
+            </div>
+            <button id="saveScenarioBtn" class="button">Save Current Scenario</button>
+            <div class="input-group">
+                <label for="savedScenariosDropdown">Load Saved Scenario:</label>
+                <select id="savedScenariosDropdown" class="w-full">
+                    <option value="">-- Select a Scenario --</option>
+                </select>
+            </div>
+            <button id="loadScenarioBtn" class="button">Load Selected Scenario</button>
+            <button id="deleteScenarioBtn" class="button close-button">Delete Selected Scenario</button>
+        </div>
+
+        <!-- Page break before results -->
+        <div class="page-break"></div>
+
+        <!-- Results Section (Full Report) -->
+        <div id="resultSection" class="result-section">
+            <h2 class="text-blue-800">Retirement Readiness Summary</h2>
+            <div class="result-item">
+                <span>Corpus at Retirement:</span> <span id="corpusAtRetirement">₹0.00</span>
+            </div>
+            <div class="result-item">
+                <span>Required Corpus to Retire:</span> <span id="requiredCorpus">₹0.00</span>
+            </div>
+            <div class="result-item">
+                <span>Surplus / Shortfall at Retirement:</span> <span id="surplusShortfall">₹0.00</span>
+            </div>
+            <div class="result-item">
+                <span>Loan-Free Year:</span> <span id="loanFreeYear">N/A</span>
+            </div>
+            <div class="result-item">
+                <span>Years Retirement Corpus Will Last:</span> <span id="corpusLongevity">N/A</span>
+            </div>
+            <div class="result-item">
+                <span>Retirement Readiness Score:</span> <span id="readinessScore">0/100</span>
+            </div>
+            <div id="suggestionTip" class="suggestion-tip"></div>
+        </div>
+
+        <!-- Page break before recommendations -->
+        <div class="page-break"></div>
+
+        <!-- Recommendations Section -->
+        <div id="recommendationSection" class="recommendation-section">
+            <h2 class="text-blue-800">Recommendations</h2>
+            <ul id="recommendationList" class="recommendation-list">
+                <!-- Recommendations will be inserted here by JavaScript -->
+            </ul>
+        </div>
+
+        <!-- Page break before charts -->
+        <div class="page-break"></div>
+
+        <!-- Chart Containers -->
+        <div id="chartsContainer" class="col-span-full hidden">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Projections</h2>
+            <div class="chart-container">
+                <canvas id="incomeVsExpensesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="corpusGrowthChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="loanRepaymentChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="educationMarriageChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="postRetirementCorpusChart"></canvas>
+            </div>
+        </div>
+        <!-- Branding for PDF -->
+        <div id="pdfBranding" class="pdf-branding">
+            Report generated by VVS Retirement Planner
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal-overlay">
+        <div class="modal-content">
+            <!-- FormSubmit.co integration -->
+            <form id="feedbackForm" action="https://formsubmit.co/vadivelan.sivaprakasam@gmail.com" method="POST">
+                <input type="hidden" name="_subject" value="Retirement Planner Feedback">
+                <input type="hidden" name="_template" value="box">
+                <input type="hidden" name="_captcha" value="false"> <!-- Disable captcha for easier testing -->
+                <input type="hidden" name="_next" value="https://example.com/thankyou.html"> <!-- Updated thank you page -->
+
+                <h3>Give Us Your Feedback!</h3>
+                <div class="input-group">
+                    <label>Rating:</label>
+                    <div class="rating-group">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+                    </div>
+                    <span id="ratingError" class="feedback-error">Please select a rating.</span>
+                </div>
+                <div class="input-group">
+                    <label for="suggestionText">Suggestion:</label>
+                    <textarea id="suggestionText" name="suggestion" rows="4" placeholder="Enter your suggestions here..."></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="button">Send Feedback</button>
+                    <button type="button" id="closeFeedbackModalBtn" class="button close-button">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- AI Coach Modal -->
+    <div id="aiCoachModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-blue-800">AI Financial Coach</h3>
+            <div class="input-group">
+                <label for="aiCoachQuestion">Ask your question:</label>
+                <textarea id="aiCoachQuestion" rows="3" placeholder="e.g., Am I saving enough? How can I improve my retirement readiness score?"></textarea>
+            </div>
+            <button id="getAiSuggestionBtn" class="button">Get AI Suggestion</button>
+            <div id="aiCoachResponse" class="p-4 bg-gray-100 rounded-lg text-gray-700 text-left overflow-y-auto max-h-60">
+                <!-- AI response will be displayed here -->
+                <p class="text-center text-gray-500">Your AI-powered insights will appear here.</p>
+            </div>
+            <div class="text-xs text-gray-500 text-center mt-2">
+                Your data is processed in real-time for this query and is not stored.
+            </div>
+            <div class="modal-buttons">
+                <button type="button" id="closeAiCoachModalBtn" class="button close-button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box for alerts/confirmations -->
+    <div id="messageBox" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hidden" style="z-index: 1001;"></div>
+
+    <!-- Fixed Footer for Main Action Buttons -->
+    <div class="fixed-footer" id="fixedFooter">
+        <button id="printBtn" class="button opacity-50" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+            Print Report
+        </button>
+        <button id="feedbackBtn" class="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            Give Feedback
+        </button>
+        <button id="aiCoachBtn" class="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 3c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/><path d="M11 17h2"/><path d="M12 2C9.24 2 7 4.24 7 7c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/></svg>
+            Ask AI Coach
+        </button>
+        <button id="darkModeToggle" class="button">
+            <!-- Dynamic SVG for Dark Mode Toggle -->
+            <span id="darkModeIcon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="8"/><line x1="12" x2="12" y1="2" y2="4"/><line x1="12" x2="12" y1="20" y2="22"/><line x1="2" x2="4" y1="12" y2="12"/><line x1="20" x2="22" y1="12" y2="12"/><line x1="4.22" x2="5.64" y1="4.22" y2="5.64"/><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"/><line x1="18.36" x2="19.78" y1="4.22" y2="5.64"/><line x1="4.22" x2="5.64" y1="18.36" y2="19.78"/></svg>
+            </span>
+            <span id="darkModeText">Toggle Dark Mode</span>
+        </button>
+    </div>
+
+    <script>
+        // --- Global Chart Instances ---
+        let incomeVsExpensesChart;
+        let corpusGrowthChart;
+        let loanRepaymentChart;
+        let educationMarriageChart;
+        let postRetirementCorpusChart;
+
+        // --- Global Currency and Tax Regime Variables ---
+        let selectedCurrency = 'INR'; // Default currency
+        let selectedTaxRegime = 'Indian'; // Default tax regime
+        let isDarkMode = false; // Track dark mode state
+
+        const currencyMap = {
+            'INR': { symbol: '₹', locale: 'en-IN', label: 'Indian Rupee (INR)' },
+            'USD': { symbol: '$', locale: 'en-US', label: 'US Dollar (USD)' },
+            'GBP': { symbol: '£', locale: 'en-GB', label: 'British Pound (GBP)' },
+            'EUR': { symbol: '€', locale: 'de-DE', label: 'Euro (EUR)' }
+        };
+
+        /**
+         * Formats a number as currency based on the selected currency.
+         * @param {number} amount - The numeric amount to format.
+         * @param {number} [decimalPlaces=2] - Number of decimal places.
+         * @returns {string} - The formatted currency string.
+         */
+        function formatCurrency(amount, decimalPlaces = 2) {
+            const currencyInfo = currencyMap[selectedCurrency];
+            if (!currencyInfo) {
+                console.warn(`Currency info not found for ${selectedCurrency}. Falling back to default.`);
+                return amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces });
+            }
+            return new Intl.NumberFormat(currencyInfo.locale, {
+                style: 'currency',
+                currency: selectedCurrency, // Use ISO code here
+                minimumFractionDigits: decimalPlaces,
+                maximumFractionDigits: decimalPlaces
+            }).format(amount);
+        }
+
+        /**
+         * Formats a number for chart ticks (e.g., in Millions/Lakhs) based on currency.
+         * @param {number} value - The numeric value for the tick.
+         * @returns {string} - The formatted tick string.
+         */
+        function formatChartTick(value) {
+            const currencyInfo = currencyMap[selectedCurrency];
+            let divisor = 1000000; // Default to Millions
+            let suffix = 'M';
+
+            if (selectedCurrency === 'INR') {
+                divisor = 100000; // Lakhs for INR
+                suffix = 'L';
+            }
+
+            return `${currencyInfo.symbol}${(value / divisor).toFixed(1)}${suffix}`;
+        }
+
+        // --- Get references to HTML elements ---
+        const elements = {
+            // Global Settings
+            currencySelector: document.getElementById('currencySelector'),
+            taxRegimeSelector: document.getElementById('taxRegimeSelector'),
+
+            // Personal Profile
+            currentAge: document.getElementById('currentAge'),
+            retirementAge: document.getElementById('retirementAge'),
+            lifeExpectancy: document.getElementById('lifeExpectancy'),
+            numKids: document.getElementById('numKids'),
+
+            // Income Details
+            selfSalary: document.getElementById('selfSalary'),
+            spouseSalary: document.getElementById('spouseSalary'),
+            annualIncrementRate: document.getElementById('annualIncrementRate'),
+            annualRentalIncome: document.getElementById('annualRentalIncome'),
+            rentalIncomeGrowthRate: document.getElementById('rentalIncomeGrowthRate'),
+            otherIncome: document.getElementById('otherIncome'),
+
+            // Expense Details
+            monthlyLivingExpenses: document.getElementById('monthlyLivingExpenses'),
+            expenseInflationRate: document.getElementById('expenseInflationRate'),
+            annualTravelBudget: document.getElementById('annualTravelBudget'),
+            annualEducationCostPerChild: document.getElementById('annualEducationCostPerChild'),
+            educationInflationRate: document.getElementById('educationInflationRate'),
+            weddingBudgetPerChild: document.getElementById('weddingBudgetPerChild'),
+            childEducationStartAge: document.getElementById('childEducationStartAge'),
+            childEducationEndAge: document.getElementById('childEducationEndAge'),
+            childWeddingAge: document.getElementById('childWeddingAge'),
+
+            // Liabilities
+            totalOutstandingLoans: document.getElementById('totalOutstandingLoans'),
+            loanInterestRate: document.getElementById('loanInterestRate'),
+            loanTenure: document.getElementById('loanTenure'),
+            annualPrepayment: document.getElementById('annualPrepayment'),
+
+            // Assets
+            currentFinancialCorpus: document.getElementById('currentFinancialCorpus'),
+            equityReturnRate: document.getElementById('equityReturnRate'),
+            realEstateValue: document.getElementById('realEstateValue'),
+            realEstateReturnRate: document.getElementById('realEstateReturnRate'),
+            goldOtherAssetValue: document.getElementById('goldOtherAssetValue'),
+            goldOtherAssetReturnRate: document.getElementById('goldOtherAssetReturnRate'),
+            keepPropertiesPostRetirement: document.getElementById('keepPropertiesPostRetirement'),
+
+            // Assumptions
+            inflationRate: document.getElementById('inflationRate'),
+            postRetirementReturnRate: document.getElementById('postRetirementReturnRate'),
+
+            // Buttons and Results Display
+            calculateBtn: document.getElementById('calculateBtn'),
+            // printBtn, feedbackBtn, aiCoachBtn, darkModeToggle are now directly referenced from fixedFooter
+            resultSection: document.getElementById('resultSection'),
+            corpusAtRetirement: document.getElementById('corpusAtRetirement'),
+            requiredCorpus: document.getElementById('requiredCorpus'),
+            surplusShortfall: document.getElementById('surplusShortfall'),
+            loanFreeYear: document.getElementById('loanFreeYear'),
+            corpusLongevity: document.getElementById('corpusLongevity'),
+            readinessScore: document.getElementById('readinessScore'),
+            suggestionTip: document.getElementById('suggestionTip'),
+            chartsContainer: document.getElementById('chartsContainer'),
+            mandatoryFieldError: document.getElementById('mandatoryFieldError'),
+            recommendationSection: document.getElementById('recommendationSection'),
+            recommendationList: document.getElementById('recommendationList'),
+
+            // Feedback Modal Elements
+            feedbackModal: document.getElementById('feedbackModal'),
+            feedbackForm: document.getElementById('feedbackForm'), // Reference to the form
+            ratingInputs: document.querySelectorAll('input[name="rating"]'),
+            suggestionText: document.getElementById('suggestionText'), // Renamed name to 'suggestion' in HTML
+            closeFeedbackModalBtn: document.getElementById('closeFeedbackModalBtn'),
+            ratingError: document.getElementById('ratingError'),
+
+            // AI Coach Modal Elements
+            aiCoachModal: document.getElementById('aiCoachModal'),
+            aiCoachQuestion: document.getElementById('aiCoachQuestion'),
+            getAiSuggestionBtn: document.getElementById('getAiSuggestionBtn'),
+            aiCoachResponse: document.getElementById('aiCoachResponse'),
+            closeAiCoachModalBtn: document.getElementById('closeAiCoachModalBtn'),
+
+            // Scenario Save/Load Elements
+            scenarioName: document.getElementById('scenarioName'),
+            saveScenarioBtn: document.getElementById('saveScenarioBtn'),
+            savedScenariosDropdown: document.getElementById('savedScenariosDropdown'),
+            loadScenarioBtn: document.getElementById('loadScenarioBtn'),
+            deleteScenarioBtn: document.getElementById('deleteScenarioBtn'),
+            scenarioSection: document.getElementById('scenarioSection'), // Added ID for easier access
+
+            // Message Box
+            messageBox: document.getElementById('messageBox'),
+
+            // Printable Area and Branding
+            mainContent: document.getElementById('mainContent'), // Renamed from printableArea
+            pdfBranding: document.getElementById('pdfBranding'),
+
+            // New elements for progressive form and live preview
+            formStepsContainer: document.getElementById('formStepsContainer'),
+            formSteps: [
+                document.getElementById('step1'), // Global Settings
+                document.getElementById('step2'), // Personal Profile
+                document.getElementById('step3'), // Income Details
+                document.getElementById('step4'), // Expense Details
+                document.getElementById('step5'), // Liabilities
+                document.getElementById('step6'), // Assets
+                document.getElementById('step7')  // Assumptions
+            ],
+            livePreviewSection: document.getElementById('livePreviewSection'),
+            liveCorpusAtRetirement: document.getElementById('liveCorpusAtRetirement'),
+            liveRequiredCorpus: document.getElementById('liveRequiredCorpus'),
+            liveSurplusShortfall: document.getElementById('liveSurplusShortfall'),
+            liveReadinessScore: document.getElementById('liveReadinessScore'),
+            fixedFooter: document.getElementById('fixedFooter'), // Reference to the new fixed footer
+            printBtn: document.getElementById('printBtn'), // Re-add specific button references for event listeners
+            feedbackBtn: document.getElementById('feedbackBtn'),
+            aiCoachBtn: document.getElementById('aiCoachBtn'),
+            darkModeToggle: document.getElementById('darkModeToggle'),
+            darkModeIcon: document.getElementById('darkModeIcon'), // Added for icon toggle
+            darkModeText: document.getElementById('darkModeText') // Added for text toggle
+        };
+
+        // --- Error message spans (dynamically mapped) ---
+        const errorElements = {}; // Declare it globally, populate in window.onload
+
+        // Define mandatory fields
+        const mandatoryFields = [
+            'currentAge', 'retirementAge', 'lifeExpectancy',
+            'selfSalary', 'annualIncrementRate',
+            'monthlyLivingExpenses', 'expenseInflationRate',
+            'currentFinancialCorpus', 'equityReturnRate',
+            'inflationRate', 'postRetirementReturnRate'
+        ];
+
+        let currentStep = 0; // Start at the first step (Global Settings)
+
+        /**
+         * Displays a temporary message box.
+         * @param {string} message - The message to display.
+         * @param {boolean} isError - True if it's an error message (red background), false for success (green).
+         */
+        function showMessage(message, isError = false) {
+            const msgBox = elements.messageBox;
+            msgBox.textContent = message;
+            msgBox.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'error');
+            msgBox.classList.add('flex'); // Ensure it's displayed with flex
+            msgBox.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+            if (isError) {
+                msgBox.classList.add('error');
+            }
+            msgBox.style.opacity = '1';
+
+            setTimeout(() => {
+                msgBox.style.opacity = '0';
+                setTimeout(() => {
+                    msgBox.classList.remove('flex'); // Hide it completely after fade out
+                    msgBox.classList.add('hidden');
+                }, 300); // Match transition duration
+            }, 3000); // Message visible for 3 seconds
+        }
+
+
+        /**
+         * Validates a single input field.
+         * @param {HTMLInputElement} inputElement - The input element to validate.
+         * @param {HTMLSpanElement} errorElement - The span element to display error messages.
+         * @param {string} fieldName - The name of the field for error messages.
+         * @param {boolean} allowZero - True if zero is a valid input, false otherwise.
+         * @returns {boolean} - True if valid, false otherwise.
+         */
+        function validateInput(inputElement, errorElement, fieldName, allowZero = true) {
+            const value = parseFloat(inputElement.value);
+            // Check for empty string or NaN for mandatory fields that don't allow zero
+            if (inputElement.value.trim() === '' || isNaN(value) || (!allowZero && value <= 0) || (allowZero && value < 0)) {
+                errorElement.textContent = `${fieldName} must be a valid non-negative number.`;
+                errorElement.style.display = 'block';
+                return false;
+            }
+            errorElement.style.display = 'none';
+            return true;
+        }
+
+        /**
+         * Validates all inputs in the current step.
+         * @param {HTMLElement} stepElement - The current form step element.
+         * @returns {boolean} - True if all mandatory fields in the current step are valid, false otherwise.
+         */
+        function validateCurrentStep(stepElement) {
+            let isValid = true;
+            // Get all input elements that are numeric and could have an error span
+            const numericInputsInStep = stepElement.querySelectorAll('input[type="number"]');
+
+            numericInputsInStep.forEach(input => {
+                const fieldId = input.id;
+                const errorElement = errorElements[fieldId]; // Get the associated error span
+
+                // Only proceed with validateInput if an error element exists for this input
+                if (errorElement) { // CRITICAL CHECK: Ensure errorElement is not undefined
+                    const fieldName = input.previousElementSibling.textContent.replace(' (Years)', '').replace(' (%)', '').replace(' (₹)', '').replace('*', '').trim();
+                    const isMandatory = mandatoryFields.includes(fieldId);
+
+                    if (!validateInput(input, errorElement, fieldName, !isMandatory)) {
+                        isValid = false;
+                    }
+                }
+            });
+
+            // Specific logical validations for step2 (age comparisons)
+            if (stepElement.id === 'step2') {
+                const currentAge = parseFloat(elements.currentAge.value);
+                const retirementAge = parseFloat(elements.retirementAge.value);
+                const lifeExpectancy = parseFloat(elements.lifeExpectancy.value);
+
+                // Re-validate mandatory fields in step2 to ensure their error messages are shown
+                // These calls will now correctly use the populated errorElements
+                if (!validateInput(elements.currentAge, errorElements.currentAge, 'Current Age', false)) isValid = false;
+                if (!validateInput(elements.retirementAge, errorElements.retirementAge, 'Retirement Age', false)) isValid = false;
+                if (!validateInput(elements.lifeExpectancy, errorElements.lifeExpectancy, 'Life Expectancy', false)) isValid = false;
+
+                // Additional logical checks for age relationships
+                if (retirementAge <= currentAge && !isNaN(retirementAge) && !isNaN(currentAge)) {
+                    if (errorElements.retirementAge) { // Safely access
+                        errorElements.retirementAge.textContent = 'Retirement Age must be greater than Current Age.';
+                        errorElements.retirementAge.style.display = 'block';
+                    }
+                    isValid = false;
+                } else {
+                    if (errorElements.retirementAge) { // Safely access
+                        errorElements.retirementAge.style.display = 'none';
+                    }
+                }
+
+                if (lifeExpectancy <= retirementAge && !isNaN(lifeExpectancy) && !isNaN(retirementAge)) {
+                    if (errorElements.lifeExpectancy) { // Safely access
+                        errorElements.lifeExpectancy.textContent = 'Life Expectancy must be greater than Retirement Age.';
+                        errorElements.lifeExpectancy.style.display = 'block';
+                    }
+                    isValid = false;
+                } else {
+                    if (errorElements.lifeExpectancy) { // Safely access
+                        errorElements.lifeExpectancy.style.display = 'none';
+                    }
+                }
+            }
+
+            return isValid;
+        }
+
+        /**
+         * Shows a specific form step and hides others.
+         * @param {number} stepIndex - The index of the step to show (0-based).
+         */
+        function showStep(stepIndex) {
+            elements.formSteps.forEach((step, index) => {
+                if (index === stepIndex) {
+                    step.classList.add('active');
+                    step.style.position = 'relative'; // Make active step take up space
+                    // Adjust container height only after the step is active and rendered
+                    requestAnimationFrame(() => {
+                        elements.formStepsContainer.style.height = step.offsetHeight + 'px';
+                    });
+                } else {
+                    step.classList.remove('active');
+                    step.style.position = 'absolute'; // Hide inactive steps from layout flow
+                }
+            });
+            // Hide generic mandatory field error when changing steps
+            elements.mandatoryFieldError.style.display = 'none';
+        }
+
+        /**
+         * Navigates to the next form step.
+         */
+        function nextStep() {
+            // Only validate if it's not the first step (Global Settings)
+            // or if the first step has specific validation (which it currently doesn't beyond selection)
+            if (currentStep > 0 && !validateCurrentStep(elements.formSteps[currentStep])) {
+                elements.mandatoryFieldError.style.display = 'block';
+                return;
+            }
+            elements.mandatoryFieldError.style.display = 'none'; // Hide if validation passes
+
+            if (currentStep < elements.formSteps.length - 1) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        /**
+         * Navigates to the previous form step.
+         */
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        /**
+         * Calculates the Equated Monthly Installment (EMI) for a loan.
+         * @param {number} principal - The principal loan amount.
+         * @param {number} annualInterestRate - The annual interest rate (e.g., 8 for 8%).
+         * @param {number} tenureYears - The loan tenure in years.
+         * @returns {number} - The monthly EMI amount.
+         */
+        function calculateEMI(principal, annualInterestRate, tenureYears) {
+            if (principal <= 0 || tenureYears <= 0) return 0;
+            const monthlyInterestRate = (annualInterestRate / 100) / 12;
+            const numberOfMonths = tenureYears * 12;
+
+            if (monthlyInterestRate === 0) {
+                return principal / numberOfMonths;
+            }
+
+            const emi = principal * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfMonths) /
+                        (Math.pow(1 + monthlyInterestRate, numberOfMonths) - 1);
+            return isNaN(emi) || !isFinite(emi) ? 0 : emi;
+        }
+
+        /**
+         * Fetches current input values and performs a lightweight calculation for live preview.
+         * @returns {object} - An object containing key calculated metrics.
+         */
+        function getLiveCalculationResults() {
+            const inputs = {};
+            // Get all input values (even if not yet validated for full calculation)
+            document.querySelectorAll('.input-group input, .input-group select, .input-group textarea').forEach(element => {
+                if (element.id && element.id !== 'scenarioName') { // Exclude scenarioName input
+                    if (element.type === 'select-one') {
+                        inputs[element.id] = element.value;
+                    } else if (element.tagName === 'INPUT' && element.type !== 'button') {
+                        inputs[element.id] = parseFloat(element.value) || 0; // Default to 0 if NaN
+                    }
+                }
+            });
+
+            // Convert percentages to decimals
+            inputs.annualIncrementRate /= 100;
+            inputs.rentalIncomeGrowthRate /= 100;
+            inputs.expenseInflationRate /= 100;
+            inputs.educationInflationRate /= 100;
+            inputs.loanInterestRate /= 100;
+            inputs.equityReturnRate /= 100;
+            inputs.realEstateReturnRate /= 100;
+            inputs.goldOtherAssetReturnRate /= 100;
+            inputs.inflationRate /= 100;
+            inputs.postRetirementReturnRate /= 100;
+
+            // Perform simplified calculation for live preview
+            const currentAge = inputs.currentAge;
+            const retirementAge = inputs.retirementAge;
+            const lifeExpectancy = inputs.lifeExpectancy;
+
+            if (retirementAge <= currentAge || lifeExpectancy <= retirementAge || currentAge <= 0) {
+                return {
+                    corpusAtRetirement: 0,
+                    requiredCorpus: 0,
+                    surplusShortfall: 0,
+                    readinessScore: 0
+                };
+            }
+
+            const yearsToRetirement = retirementAge - currentAge;
+            
+            let currentSelfSalary = inputs.selfSalary * 12; // Annual
+            let currentSpouseSalary = inputs.spouseSalary * 12; // Annual
+            let currentLivingExpenses = inputs.monthlyLivingExpenses * 12; // Annual
+            let currentOutstandingLoan = inputs.totalOutstandingLoans;
+            let currentCorpus = inputs.currentFinancialCorpus;
+
+            const annualLoanEMI = calculateEMI(inputs.totalOutstandingLoans, inputs.loanInterestRate * 100, inputs.loanTenure) * 12;
+
+            for (let year = 0; year <= yearsToRetirement; year++) {
+                const age = currentAge + year;
+
+                // Income Growth
+                const annualTotalSalary = currentSelfSalary + currentSpouseSalary;
+                const annualRentalIncome = inputs.annualRentalIncome * Math.pow(1 + inputs.rentalIncomeGrowthRate, year);
+                const totalAnnualIncome = annualTotalSalary + annualRentalIncome + inputs.otherIncome;
+
+                // Expense Growth
+                const inflatedLivingExpenses = currentLivingExpenses * Math.pow(1 + inputs.expenseInflationRate, year);
+                const inflatedTravelBudget = inputs.annualTravelBudget * Math.pow(1 + inputs.expenseInflationRate, year);
+                let annualEducationCost = 0;
+                let annualWeddingCost = 0;
+
+                if (inputs.numKids > 0) {
+                    for (let i = 0; i < inputs.numKids; i++) {
+                        const childAgeAtCurrentYear = age - (currentAge + i);
+                        if (childAgeAtCurrentYear >= inputs.childEducationStartAge && childAgeAtCurrentYear <= inputs.childEducationEndAge) {
+                            annualEducationCost += inputs.annualEducationCostPerChild * Math.pow(1 + inputs.educationInflationRate, year);
+                        }
+                        if (childAgeAtCurrentYear === inputs.childWeddingAge) {
+                            annualWeddingCost += inputs.weddingBudgetPerChild * Math.pow(1 + inputs.educationInflationRate, year);
+                        }
+                    }
+                }
+                const totalAnnualExpenses = inflatedLivingExpenses + inflatedTravelBudget + annualEducationCost + annualWeddingCost;
+
+                // Loan Repayment
+                let loanPaymentForYear = 0;
+                if (currentOutstandingLoan > 0) {
+                    loanPaymentForYear = Math.min(annualLoanEMI + inputs.annualPrepayment, currentOutstandingLoan + (currentOutstandingLoan * inputs.loanInterestRate));
+                    currentOutstandingLoan -= loanPaymentForYear;
+                    if (currentOutstandingLoan < 0) currentOutstandingLoan = 0;
+                }
+
+                // Financial Corpus Growth
+                const annualSurplusDeficit = totalAnnualIncome - totalAnnualExpenses - loanPaymentForYear;
+                currentCorpus += annualSurplusDeficit;
+                currentCorpus *= (1 + inputs.equityReturnRate); // Simplified, assuming all in equity
+
+                // Update salaries and expenses for next year
+                currentSelfSalary *= (1 + inputs.annualIncrementRate);
+                currentSpouseSalary *= (1 + inputs.annualIncrementRate);
+                currentLivingExpenses *= (1 + inputs.expenseInflationRate);
+            }
+
+            const corpusAtRetirement = currentCorpus;
+            const annualExpensesAtRetirement = currentLivingExpenses; // Use the last inflated living expenses
+
+            let requiredCorpus = 0;
+            if (inputs.postRetirementReturnRate > 0) {
+                requiredCorpus = annualExpensesAtRetirement / inputs.postRetirementReturnRate;
+            } else {
+                requiredCorpus = Infinity;
+            }
+            
+            const surplusShortfall = corpusAtRetirement - requiredCorpus;
+
+            let readinessScore = 0;
+            if (requiredCorpus === Infinity || isNaN(requiredCorpus) || requiredCorpus === 0) {
+                readinessScore = 0;
+            } else if (corpusAtRetirement >= requiredCorpus) {
+                readinessScore = 100;
+            } else {
+                readinessScore = Math.max(0, Math.min(100, Math.round((corpusAtRetirement / requiredCorpus) * 100)));
+            }
+
+            return {
+                corpusAtRetirement: corpusAtRetirement,
+                requiredCorpus: requiredCorpus,
+                surplusShortfall: surplusShortfall,
+                readinessScore: readinessScore
+            };
+        }
+
+        /**
+         * Updates the live preview section with calculated results.
+         * లైవ్ ప్రివ్యూ విభాగాన్ని లెక్కించిన ఫలితాలతో అప్‌డేట్ చేస్తుంది.
+         */
+        function updateLivePreview() {
+            const results = getLiveCalculationResults();
+
+            elements.liveCorpusAtRetirement.textContent = formatCurrency(results.corpusAtRetirement);
+            elements.liveRequiredCorpus.textContent = formatCurrency(results.requiredCorpus);
+            elements.liveSurplusShortfall.textContent = formatCurrency(results.surplusShortfall);
+            elements.liveSurplusShortfall.style.color = results.surplusShortfall >= 0 ? (isDarkMode ? '#9ae6b4' : '#065f46') : (isDarkMode ? '#fc8181' : '#ef4444');
+            elements.liveReadinessScore.textContent = `${results.readinessScore}/100`;
+
+            elements.livePreviewSection.style.display = 'flex'; // Ensure live preview is visible
+        }
+
+
+        /**
+         * Main function to calculate the retirement plan projections.
+         * This function runs the full calculation and renders charts.
+         * రిటైర్‌మెంట్ ప్లాన్ అంచనాలను లెక్కించడానికి ప్రధాన ఫంక్షన్.
+         * ఈ ఫంక్షన్ పూర్తి గణనను అమలు చేస్తుంది మరియు చార్ట్‌లను రెండర్ చేస్తుంది.
+         */
+        function calculateFullRetirementPlan() {
+            // Validate all fields across all steps before final calculation
+            // తుది గణన చేయడానికి ముందు అన్ని దశలలోని అన్ని ఫీల్డ్‌లను ధృవీకరించండి
+            let allStepsValid = true;
+            elements.formSteps.forEach((step) => {
+                if (!validateCurrentStep(step)) {
+                    allStepsValid = false;
+                }
+            });
+
+            if (!allStepsValid) {
+                elements.mandatoryFieldError.style.display = 'block';
+                elements.resultSection.style.display = 'none';
+                elements.chartsContainer.classList.add('hidden');
+                elements.suggestionTip.style.display = 'none';
+                elements.recommendationSection.style.display = 'none';
+                elements.printBtn.disabled = true; // Disable print button if validation fails
+                elements.printBtn.classList.add('opacity-50');
+                return;
+            } else {
+                elements.mandatoryFieldError.style.display = 'none';
+                elements.printBtn.disabled = false; // Enable print button if validation passes
+                elements.printBtn.classList.remove('opacity-50');
+            }
+
+            // --- 2. Get Input Values (re-fetch to ensure latest) ---
+            // ఇన్‌పుట్ విలువలను పొందండి (తాజా వాటిని నిర్ధారించుకోవడానికి మళ్లీ పొందండి)
+            const inputs = {};
+            document.querySelectorAll('.input-group input, .input-group select, .input-group textarea').forEach(element => {
+                if (element.id && element.id !== 'scenarioName') { // Exclude scenarioName input
+                    if (element.type === 'select-one') {
+                        inputs[element.id] = element.value;
+                    } else if (element.tagName === 'INPUT' && element.type !== 'button') {
+                        inputs[element.id] = parseFloat(element.value) || 0;
+                    }
+                }
+            });
+
+            // Convert percentages to decimals
+            // శాతాలను దశాంశాలుగా మార్చండి
+            inputs.annualIncrementRate /= 100;
+            inputs.rentalIncomeGrowthRate /= 100;
+            inputs.expenseInflationRate /= 100;
+            inputs.educationInflationRate /= 100;
+            inputs.loanInterestRate /= 100;
+            inputs.equityReturnRate /= 100;
+            inputs.realEstateReturnRate /= 100;
+            inputs.goldOtherAssetReturnRate /= 100;
+            inputs.inflationRate /= 100;
+            inputs.postRetirementReturnRate /= 100;
+
+            // --- 3. Pre-Retirement Projection (Year-on-Year) ---
+            // పదవీ విరమణకు ముందు అంచనా (సంవత్సరం వారీగా)
+            const yearsToRetirement = inputs.retirementAge - inputs.currentAge;
+            
+            let currentSelfSalary = inputs.selfSalary * 12; // Annual
+            let currentSpouseSalary = inputs.spouseSalary * 12; // Annual
+            let currentLivingExpenses = inputs.monthlyLivingExpenses * 12; // Annual
+            let currentOutstandingLoan = inputs.totalOutstandingLoans;
+            let currentCorpus = inputs.currentFinancialCorpus;
+            let currentRealEstateValue = inputs.realEstateValue;
+            let currentGoldOtherAssetValue = inputs.goldOtherAssetValue;
+
+            const annualLoanEMI = calculateEMI(inputs.totalOutstandingLoans, inputs.loanInterestRate * 100, inputs.loanTenure) * 12;
+            let loanFreeYear = 'N/A';
+
+            // Data for charts
+            // చార్ట్‌ల కోసం డేటా
+            const yearsLabels = [];
+            const annualIncomeData = [];
+            const annualExpensesData = [];
+            const corpusGrowthData = [];
+            const loanOutstandingData = [];
+            const educationMarriageExpensesData = [];
+
+            for (let year = 0; year <= yearsToRetirement; year++) {
+                const age = inputs.currentAge + year;
+                yearsLabels.push(age);
+
+                // Income Growth
+                // ఆదాయ వృద్ధి
+                const annualSelfSalary = currentSelfSalary;
+                const annualSpouseSalary = currentSpouseSalary;
+                const annualTotalSalary = annualSelfSalary + annualSpouseSalary;
+                const annualRentalIncome = inputs.annualRentalIncome * Math.pow(1 + inputs.rentalIncomeGrowthRate, year);
+                const annualOtherIncome = inputs.otherIncome;
+                const totalAnnualIncome = annualTotalSalary + annualRentalIncome + annualOtherIncome;
+                annualIncomeData.push(totalAnnualIncome);
+
+                // Expense Growth
+                // వ్యయ వృద్ధి
+                const inflatedLivingExpenses = currentLivingExpenses * Math.pow(1 + inputs.expenseInflationRate, year);
+                const inflatedTravelBudget = inputs.annualTravelBudget * Math.pow(1 + inputs.expenseInflationRate, year);
+                let annualEducationCost = 0;
+                let annualWeddingCost = 0;
+
+                if (inputs.numKids > 0) {
+                    for (let i = 0; i < inputs.numKids; i++) {
+                        const childAgeAtCurrentYear = age - (inputs.currentAge + i);
+
+                        if (childAgeAtCurrentYear >= inputs.childEducationStartAge && childAgeAtCurrentYear <= inputs.childEducationEndAge) {
+                            annualEducationCost += inputs.annualEducationCostPerChild * Math.pow(1 + inputs.educationInflationRate, year);
+                        }
+
+                        if (childAgeAtCurrentYear === inputs.childWeddingAge) {
+                            annualWeddingCost += inputs.weddingBudgetPerChild * Math.pow(1 + inputs.educationInflationRate, year);
+                        }
+                    }
+                }
+                educationMarriageExpensesData.push(annualEducationCost + annualWeddingCost);
+
+                const totalAnnualExpenses = inflatedLivingExpenses + inflatedTravelBudget + annualEducationCost + annualWeddingCost;
+                annualExpensesData.push(totalAnnualExpenses);
+
+                // Loan Repayment
+                // రుణ తిరిగి చెల్లింపు
+                let loanPaymentForYear = 0;
+                if (currentOutstandingLoan > 0) {
+                    loanPaymentForYear = Math.min(annualLoanEMI + inputs.annualPrepayment, currentOutstandingLoan + (currentOutstandingLoan * inputs.loanInterestRate));
+                    currentOutstandingLoan -= loanPaymentForYear;
+                    if (currentOutstandingLoan < 0) currentOutstandingLoan = 0;
+                    if (currentOutstandingLoan === 0 && loanFreeYear === 'N/A') {
+                        loanFreeYear = age;
+                    }
+                }
+                loanOutstandingData.push(currentOutstandingLoan);
+
+                // Financial Corpus Growth
+                // ఆర్థిక కార్పస్ వృద్ధి
+                const annualSurplusDeficit = totalAnnualIncome - totalAnnualExpenses - loanPaymentForYear;
+                currentCorpus += annualSurplusDeficit;
+                currentCorpus *= (1 + inputs.equityReturnRate);
+                currentRealEstateValue *= (1 + inputs.realEstateReturnRate);
+                currentGoldOtherAssetValue *= (1 + inputs.goldOtherAssetReturnRate);
+
+                // Update salaries for next year
+                // తదుపరి సంవత్సరానికి జీతాలను అప్‌డేట్ చేయండి
+                currentSelfSalary *= (1 + inputs.annualIncrementRate);
+                currentSpouseSalary *= (1 + inputs.annualIncrementRate);
+                currentLivingExpenses *= (1 + inputs.expenseInflationRate);
+            }
+
+            const corpusAtRetirement = currentCorpus;
+            const annualExpensesAtRetirement = annualExpensesData[annualExpensesData.length - 1];
+
+            // --- 4. Retirement Readiness ---
+            // పదవీ విరమణ సంసిద్ధత
+            let requiredCorpus;
+            if (inputs.postRetirementReturnRate === 0) {
+                requiredCorpus = Infinity;
+            } else {
+                requiredCorpus = annualExpensesAtRetirement / inputs.postRetirementReturnRate;
+            }
+            
+            const surplusShortfall = corpusAtRetirement - requiredCorpus;
+
+            let readinessScore = 0;
+            if (requiredCorpus === Infinity || isNaN(requiredCorpus)) {
+                readinessScore = 0;
+            } else if (corpusAtRetirement >= requiredCorpus) {
+                readinessScore = 100;
+            } else {
+                readinessScore = Math.max(0, Math.min(100, Math.round((corpusAtRetirement / requiredCorpus) * 100)));
+            }
+
+            // --- 5. Post-Retirement Projection ---
+            // పదవీ విరమణ తర్వాత అంచనా
+            let postRetirementCorpus = corpusAtRetirement;
+            let currentPostRetirementExpenses = annualExpensesAtRetirement;
+            let corpusDepletionYear = 'N/A';
+            const postRetirementYearsLabels = [];
+            const postRetirementCorpusData = [];
+
+            for (let age = inputs.retirementAge; age <= inputs.lifeExpectancy; age++) {
+                postRetirementYearsLabels.push(age);
+                postRetirementCorpusData.push(postRetirementCorpus);
+
+                if (postRetirementCorpus <= 0) {
+                    if (corpusDepletionYear === 'N/A') {
+                        corpusDepletionYear = age;
+                    }
+                    postRetirementCorpus = 0;
+                    continue;
+                }
+
+                if (age > inputs.retirementAge) {
+                    currentPostRetirementExpenses *= (1 + inputs.inflationRate);
+                }
+
+                let postRetirementRentalIncome = 0;
+                if (inputs.keepPropertiesPostRetirement === 'Yes') {
+                    postRetirementRentalIncome = inputs.annualRentalIncome * Math.pow(1 + inputs.rentalIncomeGrowthRate, (age - inputs.currentAge));
+                }
+
+                postRetirementCorpus *= (1 + inputs.postRetirementReturnRate);
+                const annualDrawdown = currentPostRetirementExpenses - postRetirementRentalIncome;
+                postRetirementCorpus -= annualDrawdown;
+
+                if (postRetirementCorpus <= 0 && corpusDepletionYear === 'N/A') {
+                    corpusDepletionYear = age;
+                }
+            }
+
+            const yearsCorpusWillLast = (corpusDepletionYear !== 'N/A') ? (corpusDepletionYear - inputs.retirementAge) : (inputs.lifeExpectancy - inputs.retirementAge);
+
+            // --- 6. Display Results (Full Report) ---
+            // ఫలితాలను ప్రదర్శించండి (పూర్తి నివేదన)
+            elements.corpusAtRetirement.textContent = formatCurrency(corpusAtRetirement);
+            elements.requiredCorpus.textContent = formatCurrency(requiredCorpus);
+            elements.surplusShortfall.textContent = formatCurrency(surplusShortfall);
+            elements.surplusShortfall.style.color = surplusShortfall >= 0 ? (isDarkMode ? '#9ae6b4' : '#065f46') : (isDarkMode ? '#fc8181' : '#ef4444');
+
+            elements.loanFreeYear.textContent = loanFreeYear !== 'N/A' ? `${loanFreeYear} (Age)` : 'N/A';
+            elements.corpusLongevity.textContent = `${yearsCorpusWillLast} Years`;
+            elements.readinessScore.textContent = `${readinessScore}/100`;
+
+            if (surplusShortfall < 0) {
+                elements.suggestionTip.textContent = `You have a shortfall of ${formatCurrency(Math.abs(surplusShortfall))}. Consider increasing your monthly savings or delaying retirement.`;
+                elements.suggestionTip.style.display = 'block';
+            } else if (readinessScore === 100 && yearsCorpusWillLast > (inputs.lifeExpectancy - inputs.retirementAge)) {
+                 elements.suggestionTip.textContent = `Excellent! Your plan looks robust. You might consider early retirement or increasing your lifestyle expenses.`;
+                 elements.suggestionTip.style.display = 'block';
+            }
+            else {
+                elements.suggestionTip.style.display = 'none';
+            }
+
+            elements.resultSection.style.display = 'flex';
+            elements.chartsContainer.classList.remove('hidden');
+
+            // --- Generate Recommendations ---
+            // సిఫార్సులను రూపొందించండి
+            generateRecommendations(readinessScore, surplusShortfall, yearsCorpusWillLast, inputs);
+            elements.recommendationSection.style.display = 'flex';
+
+            // --- Console logs for debugging data ---
+            // డీబగ్గింగ్ డేటా కోసం కన్సోల్ లాగ్‌లు
+            console.log('Years Labels:', yearsLabels);
+            console.log('Annual Income Data:', annualIncomeData);
+            console.log('Annual Expenses Data:', annualExpensesData);
+            console.log('Corpus Growth Data:', corpusGrowthData);
+            console.log('Loan Outstanding Data:', loanOutstandingData);
+            console.log('Education Marriage Expenses Data:', educationMarriageExpensesData);
+            console.log('Post Retirement Years Labels:', postRetirementYearsLabels);
+            console.log('Post Retirement Corpus Data:', postRetirementCorpusData);
+
+
+            // --- 7. Render Charts ---
+            // చార్ట్‌లను రెండర్ చేయండి
+            renderCharts(yearsLabels, annualIncomeData, annualExpensesData, corpusGrowthData, loanOutstandingData, educationMarriageExpensesData, postRetirementYearsLabels, postRetirementCorpusData);
+
+            // Auto-save current inputs after calculation
+            // గణన తర్వాత ప్రస్తుత ఇన్‌పుట్‌లను ఆటో-సేవ్ చేయండి
+            saveCurrentInputs();
+        }
+
+        /**
+         * Generates and displays recommendations based on the retirement plan results.
+         * @param {number} readinessScore - The calculated retirement readiness score.
+         * @param {number} surplusShortfall - The surplus or shortfall amount.
+         * @param {number} yearsCorpusWillLast - How many years the corpus will last.
+         * @param {object} inputs - The user's input values.
+         * పదవీ విరమణ ప్రణాళిక ఫలితాల ఆధారంగా సిఫార్సులను రూపొందిస్తుంది మరియు ప్రదర్శిస్తుంది.
+         */
+        function generateRecommendations(readinessScore, surplusShortfall, yearsCorpusWillLast, inputs) {
+            const list = elements.recommendationList;
+            list.innerHTML = ''; // Clear previous recommendations
+            // మునుపటి సిఫార్సులను క్లియర్ చేయండి
+
+            const addRecommendation = (text) => {
+                const li = document.createElement('li');
+                li.textContent = text;
+                list.appendChild(li);
+            };
+
+            if (readinessScore === 100 && yearsCorpusWillLast >= (inputs.lifeExpectancy - inputs.retirementAge)) {
+                addRecommendation("Congratulations! Your retirement plan looks robust and is projected to last well beyond your life expectancy. You have achieved a perfect score!");
+                addRecommendation("Consider these options:");
+                addRecommendation("- Explore opportunities for early retirement if that aligns with your goals.");
+                addRecommendation("- Increase your post-retirement lifestyle expenses to enjoy more during your golden years.");
+                addRecommendation("- Consider philanthropic activities or leaving a legacy.");
+                addRecommendation("- Regularly review your assumptions (inflation, returns) to ensure realism.");
+            } else if (readinessScore >= 75) {
+                addRecommendation("Your retirement plan is on a good track, but there's room for improvement to reach a perfect score (100).");
+                addRecommendation("To enhance your readiness:");
+                if (surplusShortfall < 0) {
+                     addRecommendation(`- You have a projected shortfall of ${formatCurrency(Math.abs(surplusShortfall))}. Aim to cover this gap.`);
+                }
+                addRecommendation("- Increase your monthly savings by at least 5-10%. Even small increases can make a big difference over time.");
+                addRecommendation("- Explore investment options with potentially higher, but still realistic, returns (e.g., diversified equity mutual funds).");
+                addRecommendation("- Consider delaying your retirement by a few years to accumulate more corpus.");
+                addRecommendation("- Review your current expenses to identify areas where you can save more.");
+            } else if (readinessScore >= 50) {
+                addRecommendation("Your retirement plan needs significant attention to ensure a comfortable future.");
+                addRecommendation("To improve your score and secure your retirement:");
+                if (surplusShortfall < 0) {
+                     addRecommendation(`- You have a significant projected shortfall of ${formatCurrency(Math.abs(surplusShortfall))}.`);
+                }
+                addRecommendation("- Substantially increase your monthly savings. Create a dedicated SIP for retirement.");
+                addRecommendation("- Actively manage your investments. Consult a financial advisor to optimize your portfolio for better returns.");
+                addRecommendation("- Seriously consider delaying your retirement age to allow more time for corpus accumulation.");
+                addRecommendation("- Implement strict budgeting to reduce non-essential expenses and free up funds for savings.");
+                addRecommendation("- Explore additional income streams or part-time work to boost your savings capacity.");
+            } else {
+                addRecommendation("Your current plan indicates a high risk of not meeting your retirement goals. Urgent action is required.");
+                addRecommendation("To build a secure retirement foundation:");
+                if (surplusShortfall < 0) {
+                     addRecommendation(`- You have a critical projected shortfall of ${formatCurrency(Math.abs(surplusShortfall))}.`);
+                }
+                addRecommendation("- Prioritize aggressive savings. Aim to save a significant portion of your income immediately.");
+                addRecommendation("- Re-evaluate your retirement age and consider working longer.");
+                addRecommendation("- Seek professional financial advice to create a personalized, actionable plan.");
+                addRecommendation("- Drastically cut down on discretionary expenses.");
+                addRecommendation("- Explore options to increase income, such as skill development for promotions or a side hustle.");
+            }
+        }
+
+
+        /**
+         * Renders all the Chart.js graphs.
+         * @param {Array<number>} yearsLabels - Array of years for x-axis.
+         * @param {Array<number>} annualIncomeData - Array of annual income data.
+         * @param {Array<number>} annualExpensesData - Array of annual expenses data.
+         * @param {Array<number>} corpusGrowthData - Array of corpus growth data.
+         * @param {Array<number>} loanOutstandingData - Array of loan outstanding data.
+         * @param {Array<number>} educationMarriageExpensesData - Array of education and marriage expenses data.
+         * @param {Array<number>} postRetirementYearsLabels - Array of years for post-retirement x-axis.
+         * @param {Array<number>} postRetirementCorpusData - Array of post-retirement corpus data.
+         * అన్ని Chart.js గ్రాఫ్‌లను రెండర్ చేస్తుంది.
+         */
+        function renderCharts(yearsLabels, annualIncomeData, annualExpensesData, corpusGrowthData, loanOutstandingData, educationMarriageExpensesData, postRetirementYearsLabels, postRetirementCorpusData) {
+            // Destroy existing charts if they exist
+            // ఇప్పటికే ఉన్న చార్ట్‌లను నాశనం చేయండి
+            if (incomeVsExpensesChart) incomeVsExpensesChart.destroy();
+            if (corpusGrowthChart) corpusGrowthChart.destroy();
+            if (loanRepaymentChart) loanRepaymentChart.destroy();
+            if (educationMarriageChart) educationMarriageChart.destroy();
+            if (postRetirementCorpusChart) postRetirementCorpusChart.destroy();
+
+            const textColor = isDarkMode ? '#e2e8f0' : '#1f2937';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+            // Defined color palette
+            const palette = {
+                blue: '#3b82f6',
+                emerald: '#10b981',
+                yellow: '#facc15',
+                rose: '#f43f5e'
+            };
+
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: textColor // Legend text color
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += formatCurrency(context.parsed.y, 0); // Format with 0 decimal places for tooltips
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        color: textColor // Title color
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: `Amount (${currencyMap[selectedCurrency].symbol})`,
+                            color: textColor // Y-axis title color
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatChartTick(value);
+                            },
+                            color: textColor // Y-axis tick labels color
+                        },
+                        grid: {
+                            color: gridColor // Y-axis grid lines color
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Age (Years)',
+                            color: textColor // X-axis title color
+                        },
+                        ticks: {
+                            color: textColor // X-axis tick labels color
+                        },
+                        grid: {
+                            color: gridColor // X-axis grid lines color
+                        }
+                    }
+                }
+            };
+
+            // Income vs Expenses Over Time
+            // కాలక్రమేణా ఆదాయం vs ఖర్చులు
+            const incomeVsExpensesCtx = document.getElementById('incomeVsExpensesChart').getContext('2d');
+            incomeVsExpensesChart = new Chart(incomeVsExpensesCtx, {
+                type: 'line',
+                data: {
+                    labels: yearsLabels,
+                    datasets: [
+                        {
+                            label: 'Annual Income',
+                            data: annualIncomeData,
+                            borderColor: palette.blue,
+                            backgroundColor: `${palette.blue}33`, // 20% opacity
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Annual Expenses',
+                            data: annualExpensesData,
+                            borderColor: palette.rose,
+                            backgroundColor: `${palette.rose}33`, // 20% opacity
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Income vs Expenses Over Time (Pre-Retirement)',
+                            color: textColor
+                        }
+                    }
+                }
+            });
+
+            // Corpus Growth vs Required Corpus (Simplified, showing only growth)
+            // కార్పస్ వృద్ధి vs అవసరమైన కార్పస్ (సరళీకరించబడింది, వృద్ధిని మాత్రమే చూపుతుంది)
+            const corpusGrowthCtx = document.getElementById('corpusGrowthChart').getContext('2d');
+            corpusGrowthChart = new Chart(corpusGrowthCtx, {
+                type: 'line',
+                data: {
+                    labels: yearsLabels,
+                    datasets: [
+                        {
+                            label: 'Financial Corpus Growth',
+                            data: corpusGrowthData,
+                            borderColor: palette.emerald,
+                            backgroundColor: `${palette.emerald}33`, // 20% opacity
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Financial Corpus Growth (Pre-Retirement)',
+                            color: textColor
+                        }
+                    }
+                }
+            });
+
+            // Loan Repayment Progress
+            // రుణ తిరిగి చెల్లింపు పురోగతి
+            const loanRepaymentCtx = document.getElementById('loanRepaymentChart').getContext('2d');
+            loanRepaymentChart = new Chart(loanRepaymentCtx, {
+                type: 'line',
+                data: {
+                    labels: yearsLabels,
+                    datasets: [
+                        {
+                            label: 'Loan Outstanding',
+                            data: loanOutstandingData,
+                            borderColor: palette.yellow,
+                            backgroundColor: `${palette.yellow}33`, // 20% opacity
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Loan Repayment Progress',
+                            color: textColor
+                        }
+                    }
+                }
+            });
+
+            // Education & Marriage Expense Projection
+            // విద్య & వివాహ వ్యయ అంచనా
+            const educationMarriageCtx = document.getElementById('educationMarriageChart').getContext('2d');
+            educationMarriageChart = new Chart(educationMarriageCtx, {
+                type: 'bar',
+                data: {
+                    labels: yearsLabels,
+                    datasets: [
+                        {
+                            label: 'Education & Marriage Costs',
+                            data: educationMarriageExpensesData,
+                            backgroundColor: palette.blue, // Reusing blue for bars
+                            borderColor: palette.blue,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Children\'s Education & Marriage Expense Projection',
+                            color: textColor
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: `Amount (${currencyMap[selectedCurrency].symbol})`,
+                                color: textColor
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatChartTick(value);
+                                },
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Age (Years)',
+                                color: textColor
+                            },
+                            ticks: {
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Post-Retirement Corpus Depletion Graph
+            // పదవీ విరమణ తర్వాత కార్పస్ క్షీణత గ్రాఫ్
+            const postRetirementCorpusCtx = document.getElementById('postRetirementCorpusChart').getContext('2d');
+            postRetirementCorpusChart = new Chart(postRetirementCorpusCtx, {
+                type: 'line',
+                data: {
+                    labels: postRetirementYearsLabels,
+                    datasets: [
+                        {
+                            label: 'Post-Retirement Corpus',
+                            data: postRetirementCorpusData,
+                            borderColor: palette.emerald, // Reusing emerald for consistency with corpus growth
+                            backgroundColor: `${palette.emerald}33`, // 20% opacity
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Post-Retirement Corpus Depletion',
+                            color: textColor
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- New Functions for Print and Feedback ---
+        // ప్రింట్ మరియు ఫీడ్‌బ్యాక్ కోసం కొత్త ఫంక్షన్‌లు
+
+        /**
+         * Initiates the printing of the entire document content as a PDF.
+         * మొత్తం డాక్యుమెంట్ కంటెంట్‌ను PDFగా ప్రింట్ చేయడాన్ని ప్రారంభిస్తుంది.
+         */
+        function printReport() {
+            const element = elements.mainContent; // Use mainContent as the element to capture
+            const scenarioSection = elements.scenarioSection; // Use the ID for scenario section
+
+            // Hide buttons and scenario section during PDF generation
+            // PDF జనరేషన్ సమయంలో బటన్‌లు మరియు దృశ్య విభాగాన్ని దాచండి
+            elements.fixedFooter.style.display = 'none'; // Hide the entire fixed footer
+            if (scenarioSection) {
+                scenarioSection.style.display = 'none';
+            }
+            elements.livePreviewSection.style.display = 'none'; // Hide live preview during print
+            elements.formStepsContainer.style.display = 'none'; // Hide form steps during print
+
+            // Append branding element to the main content for PDF capture
+            // PDF క్యాప్చర్ కోసం బ్రాండింగ్ ఎలిమెంట్‌ను ప్రధాన కంటెంట్‌కు జోడించండి
+            elements.mainContent.appendChild(elements.pdfBranding);
+            elements.pdfBranding.style.display = 'block'; // Show branding for PDF
+
+            // Show loading indicator
+            // లోడింగ్ సూచికను చూపండి
+            showMessage('Generating PDF report...', false);
+
+            // Add a small delay to ensure charts are fully rendered
+            // చార్ట్‌లు పూర్తిగా రెండర్ అయ్యాయని నిర్ధారించుకోవడానికి కొద్దిగా ఆలస్యం చేయండి
+            setTimeout(() => {
+                html2pdf(element, {
+                    margin: 10,
+                    filename: 'Retirement_Plan_Report.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css'] } // Respect CSS page-break properties
+                }).then(() => {
+                    // Remove branding element from main content after PDF generation
+                    // PDF జనరేషన్ తర్వాత ప్రధాన కంటెంట్ నుండి బ్రాండింగ్ ఎలిమెంట్‌ను తొలగించండి
+                    elements.mainContent.removeChild(elements.pdfBranding);
+                    elements.pdfBranding.style.display = 'none'; // Ensure it's hidden in HTML view
+
+                    // Show elements again
+                    // ఎలిమెంట్‌లను మళ్లీ చూపండి
+                    elements.fixedFooter.style.display = 'flex'; // Show the fixed footer again
+                    if (scenarioSection) {
+                        scenarioSection.style.display = 'flex'; // Assuming it was flex
+                    }
+                    elements.livePreviewSection.style.display = 'flex'; // Show live preview again
+                    elements.formStepsContainer.style.display = 'block'; // Show form steps again
+                    showMessage('PDF report generated successfully!', false);
+                }).catch(error => {
+                    console.error('Error generating PDF:', error);
+                    // Remove branding element even on error
+                    // లోపం సంభవించినా బ్రాండింగ్ ఎలిమెంట్‌ను తొలగించండి
+                    elements.mainContent.removeChild(elements.pdfBranding);
+                    elements.pdfBranding.style.display = 'none';
+
+                    // Show elements again
+                    // ఎలిమెంట్‌లను మళ్లీ చూపండి
+                    elements.fixedFooter.style.display = 'flex'; // Show the fixed footer again
+                    if (scenarioSection) {
+                        scenarioSection.style.display = 'flex';
+                    }
+                    elements.livePreviewSection.style.display = 'flex';
+                    elements.formStepsContainer.style.display = 'block';
+                    showMessage('Failed to generate PDF report.', true);
+                });
+            }, 500); // 500ms delay
+        }
+
+        /**
+         * Opens the feedback modal.
+         * ఫీడ్‌బ్యాక్ మోడల్‌ను తెరుస్తుంది.
+         */
+        function openFeedbackModal() {
+            elements.feedbackModal.style.display = 'flex';
+            elements.ratingError.style.display = 'none'; // Hide error on open
+            elements.suggestionText.value = ''; // Clear previous suggestion
+            elements.ratingInputs.forEach(input => input.checked = false); // Clear previous rating
+        }
+
+        /**
+         * Closes the feedback modal.
+         * ఫీడ్‌బ్యాక్ మోడల్‌ను మూసివేస్తుంది.
+         */
+        function closeFeedbackModal() {
+            elements.feedbackModal.style.display = 'none';
+        }
+
+        /**
+         * Opens the AI Coach modal.
+         * AI కోచ్ మోడల్‌ను తెరుస్తుంది.
+         */
+        function openAICoachModal() {
+            elements.aiCoachModal.style.display = 'flex';
+            elements.aiCoachResponse.innerHTML = '<p class="text-center text-gray-500">Your AI-powered insights will appear here.</p>'; // Clear previous response
+            elements.aiCoachQuestion.value = ''; // Clear previous question
+        }
+
+        /**
+         * Closes the AI Coach modal.
+         * AI కోచ్ మోడల్‌ను మూసివేస్తుంది.
+         */
+        function closeAICoachModal() {
+            elements.aiCoachModal.style.display = 'none';
+        }
+
+        /**
+         * Calls the Gemini API to get AI suggestions.
+         * AI సూచనలను పొందడానికి జెమిని APIకి కాల్ చేస్తుంది.
+         */
+        async function getAiSuggestion() {
+            const userQuestion = elements.aiCoachQuestion.value.trim();
+            if (!userQuestion) {
+                elements.aiCoachResponse.innerHTML = '<p class="text-red-500 text-center">Please enter a question for the AI coach.</p>';
+                return;
+            }
+
+            elements.aiCoachResponse.innerHTML = '<p class="text-center text-blue-500">Thinking... Please wait.</p>'; // Loading message
+            // ఆలోచిస్తోంది... దయచేసి వేచి ఉండండి.
+
+            // Get current calculated results for context
+            // సందర్భం కోసం ప్రస్తుత లెక్కించిన ఫలితాలను పొందండి
+            const currentResults = getLiveCalculationResults();
+            const inputs = getCurrentFormInputs(); // Get all raw inputs
+
+            let prompt = `You are an AI financial coach. Provide concise and actionable advice based on the user's retirement plan.
+            
+            Here is the user's current retirement plan data:
+            - Current Age: ${inputs.currentAge} years
+            - Planned Retirement Age: ${inputs.retirementAge} years
+            - Life Expectancy: ${inputs.lifeExpectancy} years
+            - Current Monthly Salary (Self): ${formatCurrency(inputs.selfSalary, 0)}
+            - Current Monthly Salary (Spouse): ${formatCurrency(inputs.spouseSalary, 0)}
+            - Annual Increment Rate: ${inputs.annualIncrementRate * 100}%
+            - Current Monthly Living Expenses: ${formatCurrency(inputs.monthlyLivingExpenses, 0)}
+            - Expense Inflation Rate: ${inputs.expenseInflationRate * 100}%
+            - Current Financial Corpus: ${formatCurrency(inputs.currentFinancialCorpus, 0)}
+            - Expected Equity Return Rate: ${inputs.equityReturnRate * 100}%
+            - General Inflation Rate: ${inputs.inflationRate * 100}%
+            - Post-Retirement Return Rate: ${inputs.postRetirementReturnRate * 100}%
+            - Number of Kids: ${inputs.numKids}
+            - Annual Rental Income: ${formatCurrency(inputs.annualRentalIncome, 0)}
+            - Other Annual Income: ${formatCurrency(inputs.otherIncome, 0)}
+            - Total Outstanding Loans: ${formatCurrency(inputs.totalOutstandingLoans, 0)}
+            - Loan Interest Rate: ${inputs.loanInterestRate * 100}%
+            - Loan Tenure: ${inputs.loanTenure} years
+            - Annual Prepayment: ${formatCurrency(inputs.annualPrepayment, 0)}
+            - Current Real Estate Value: ${formatCurrency(inputs.realEstateValue, 0)}
+            - Gold/Other Asset Value: ${formatCurrency(inputs.goldOtherAssetValue, 0)}
+            - Keep Properties Post Retirement: ${inputs.keepPropertiesPostRetirement}
+            - Selected Currency: ${currencyMap[selectedCurrency].label}
+            - Selected Tax Regime: ${selectedTaxRegime}
+
+            Calculated Results:
+            - Projected Corpus at Retirement: ${formatCurrency(currentResults.corpusAtRetirement, 0)}
+            - Required Corpus to Retire: ${formatCurrency(currentResults.requiredCorpus, 0)}
+            - Surplus / Shortfall at Retirement: ${formatCurrency(currentResults.surplusShortfall, 0)}
+            - Retirement Readiness Score: ${currentResults.readinessScore}/100
+
+            User's Question: "${userQuestion}"
+
+            Based on this information, provide specific, actionable financial advice. Focus on improving the retirement readiness score if it's low, or optimizing for early retirement/increased lifestyle if it's high. Keep your response concise, around 100-200 words.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will automatically provide this at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    elements.aiCoachResponse.textContent = text;
+                } else {
+                    elements.aiCoachResponse.innerHTML = '<p class="text-red-500 text-center">Sorry, I could not get a suggestion. Please try again.</p>';
+                    console.error('Unexpected API response structure:', result);
+                }
+            } catch (error) {
+                elements.aiCoachResponse.innerHTML = '<p class="text-red-500 text-center">Error connecting to AI. Please check your network or try again later.</p>';
+                console.error('Error fetching AI suggestion:', error);
+            }
+        }
+
+
+        // --- Local Storage Functions for Scenarios ---
+        // దృశ్యాల కోసం స్థానిక నిల్వ ఫంక్షన్‌లు
+
+        /**
+         * Gets all current input values from the form.
+         * @returns {object} An object containing all input values.
+         * ఫారమ్ నుండి అన్ని ప్రస్తుత ఇన్‌పుట్ విలువలను పొందుతుంది.
+         */
+        function getCurrentFormInputs() {
+            const inputs = {};
+            // Iterate through all input elements to get their values
+            // వాటి విలువలను పొందడానికి అన్ని ఇన్‌పుట్ ఎలిమెంట్‌ల ద్వారా పునరావృతం చేయండి
+            document.querySelectorAll('.input-group input, .input-group select, .input-group textarea').forEach(element => {
+                if (element.id && element.id !== 'scenarioName') { // Exclude scenarioName input
+                    if (element.type === 'select-one') {
+                        inputs[element.id] = element.value;
+                    } else if (element.tagName === 'INPUT' && element.type !== 'button') {
+                        inputs[element.id] = parseFloat(element.value) || 0;
+                    }
+                }
+            });
+            // Also save the selected currency and tax regime
+            // ఎంచుకున్న కరెన్సీ మరియు పన్ను విధానాన్ని కూడా సేవ్ చేయండి
+            inputs.selectedCurrency = selectedCurrency;
+            inputs.selectedTaxRegime = selectedTaxRegime;
+            return inputs;
+        }
+
+        /**
+         * Sets form input values from a given data object.
+         * @param {object} data - An object containing input values to set.
+         * ఇచ్చిన డేటా ఆబ్జెక్ట్ నుండి ఫారమ్ ఇన్‌పుట్ విలువలను సెట్ చేస్తుంది.
+         */
+        function setFormInputs(data) {
+            for (const key in data) {
+                const element = document.getElementById(key); // Use getElementById for direct access
+                if (element) {
+                    element.value = data[key];
+                }
+            }
+            // Set global currency and tax regime from loaded data
+            // లోడ్ చేయబడిన డేటా నుండి గ్లోబల్ కరెన్సీ మరియు పన్ను విధానాన్ని సెట్ చేయండి
+            selectedCurrency = data.selectedCurrency || 'INR'; // Default if not found in old data
+            selectedTaxRegime = data.selectedTaxRegime || 'Indian'; // Default if not found
+            elements.currencySelector.value = selectedCurrency;
+            elements.taxRegimeSelector.value = selectedTaxRegime;
+        }
+
+        /**
+         * Auto-saves the current form inputs to localStorage.
+         * ప్రస్తుత ఫారమ్ ఇన్‌పుట్‌లను స్థానిక నిల్వకు ఆటో-సేవ్ చేస్తుంది.
+         */
+        function saveCurrentInputs() {
+            const inputs = getCurrentFormInputs();
+            localStorage.setItem('retirementAppLastState', JSON.stringify(inputs));
+            console.log('Current state auto-saved.');
+        }
+
+        /**
+         * Loads the last auto-saved inputs from localStorage.
+         * స్థానిక నిల్వ నుండి చివరిగా ఆటో-సేవ్ చేయబడిన ఇన్‌పుట్‌లను లోడ్ చేస్తుంది.
+         */
+        function loadLastSavedInputs() {
+            const savedState = localStorage.getItem('retirementAppLastState');
+            if (savedState) {
+                setFormInputs(JSON.parse(savedState));
+                console.log('Last saved state loaded.');
+            }
+        }
+
+        /**
+         * Saves the current form inputs as a named scenario.
+         * ప్రస్తుత ఫారమ్ ఇన్‌పుట్‌లను పేరున్న దృశ్యంగా సేవ్ చేస్తుంది.
+         */
+        function saveScenario() {
+            const scenarioName = elements.scenarioName.value.trim();
+            if (!scenarioName) {
+                showMessage('Please enter a name for the scenario.', true); // Use custom message box
+                return;
+            }
+
+            let savedScenarios = JSON.parse(localStorage.getItem('retirementAppSavedScenarios') || '{}');
+            savedScenarios[scenarioName] = getCurrentFormInputs();
+            localStorage.setItem('retirementAppSavedScenarios', JSON.stringify(savedScenarios));
+            updateScenarioList();
+            elements.scenarioName.value = ''; // Clear input after saving
+            showMessage(`Scenario "${scenarioName}" saved successfully!`); // Use custom message box
+        }
+
+        /**
+         * Loads a selected scenario from localStorage.
+         * స్థానిక నిల్వ నుండి ఎంచుకున్న దృశ్యాన్ని లోడ్ చేస్తుంది.
+         */
+        function loadScenario() {
+            const selectedScenarioName = elements.savedScenariosDropdown.value;
+            if (!selectedScenarioName) {
+                showMessage('Please select a scenario to load.', true); // Use custom message box
+                return;
+            }
+
+            const savedScenarios = JSON.parse(localStorage.getItem('retirementAppSavedScenarios') || '{}');
+            const scenarioData = savedScenarios[selectedScenarioName];
+
+            if (scenarioData) {
+                setFormInputs(scenarioData);
+                calculateFullRetirementPlan(); // Recalculate with loaded data
+                showMessage(`Scenario "${selectedScenarioName}" loaded successfully!`); // Use custom message box
+                currentStep = elements.formSteps.length -1; // Go to last step after loading
+                showStep(currentStep);
+            } else {
+                showMessage('Selected scenario not found.', true); // Use custom message box
+            }
+        }
+
+        /**
+         * Deletes a selected scenario from localStorage.
+         * స్థానిక నిల్వ నుండి ఎంచుకున్న దృశ్యాన్ని తొలగిస్తుంది.
+         */
+        function deleteScenario() {
+            const selectedScenarioName = elements.savedScenariosDropdown.value;
+            if (!selectedScenarioName) {
+                showMessage('Please select a scenario to delete.', true); // Use custom message box
+                return;
+            }
+
+            let savedScenarios = JSON.parse(localStorage.getItem('retirementAppSavedScenarios') || '{}');
+            if (savedScenarios[selectedScenarioName]) {
+                delete savedScenarios[selectedScenarioName];
+                localStorage.setItem('retirementAppSavedScenarios', JSON.stringify(savedScenarios));
+                updateScenarioList();
+                showMessage(`Scenario "${selectedScenarioName}" deleted.`); // Use custom message box
+                if (elements.savedScenariosDropdown.options.length === 1) {
+                    elements.savedScenariosDropdown.value = "";
+                }
+            } else {
+                showMessage('Selected scenario not found.', true); // Use custom message box
+            }
+        }
+
+        /**
+         * Updates the dropdown list of saved scenarios.
+         * సేవ్ చేయబడిన దృశ్యాల డ్రాప్‌డౌన్ జాబితాను అప్‌డేట్ చేస్తుంది.
+         */
+        function updateScenarioList() {
+            const dropdown = elements.savedScenariosDropdown;
+            dropdown.innerHTML = '<option value="">-- Select a Scenario --</option>'; // Clear existing options
+            const savedScenarios = JSON.parse(localStorage.getItem('retirementAppSavedScenarios') || '{}');
+
+            for (const name in savedScenarios) {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                dropdown.appendChild(option);
+            }
+        }
+
+        /**
+         * Toggles dark mode on/off and updates the icon.
+         * డార్క్ మోడ్‌ను ఆన్/ఆఫ్ చేస్తుంది మరియు ఐకాన్‌ను అప్‌డేట్ చేస్తుంది.
+         */
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.classList.toggle('dark', isDarkMode);
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+            updateChartTheme(); // Update charts immediately
+            updateLivePreview(); // Update live preview text colors
+
+            // Update the icon and text
+            if (isDarkMode) {
+                elements.darkModeIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+                elements.darkModeText.textContent = 'Light Mode';
+            } else {
+                elements.darkModeIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="8"/><line x1="12" x2="12" y1="2" y2="4"/><line x1="12" x2="12" y1="20" y2="22"/><line x1="2" x2="4" y1="12" y2="12"/><line x1="20" x2="22" y1="12" y2="12"/><line x1="4.22" x2="5.64" y1="4.22" y2="5.64"/><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"/><line x1="18.36" x2="19.78" y1="4.22" y2="5.64"/><line x1="4.22" x2="5.64" y1="18.36" y2="19.78"/></svg>';
+                elements.darkModeText.textContent = 'Dark Mode';
+            }
+        }
+
+        /**
+         * Updates the theme of all Chart.js charts.
+         * అన్ని Chart.js చార్ట్‌ల థీమ్‌ను అప్‌డేట్ చేస్తుంది.
+         */
+        function updateChartTheme() {
+            // Re-render charts with updated theme colors
+            // అప్‌డేట్ చేయబడిన థీమ్ రంగులతో చార్ట్‌లను మళ్లీ రెండర్ చేయండి
+            const inputs = getCurrentFormInputs(); // Get current inputs to pass to renderCharts
+            calculateFullRetirementPlan(); // This will re-render charts with new theme
+        }
+
+
+        // --- Event Listeners ---
+        // ఈవెంట్ లిజనర్‌లు
+        elements.calculateBtn.addEventListener('click', calculateFullRetirementPlan); // Changed to full calculation
+        elements.printBtn.addEventListener('click', printReport);
+        elements.feedbackBtn.addEventListener('click', openFeedbackModal);
+        elements.closeFeedbackModalBtn.addEventListener('click', closeFeedbackModal);
+        elements.aiCoachBtn.addEventListener('click', openAICoachModal); // Open AI Coach modal
+        elements.closeAiCoachModalBtn.addEventListener('click', closeAICoachModal); // Close AI Coach modal
+        elements.getAiSuggestionBtn.addEventListener('click', getAiSuggestion); // Get AI suggestion
+        elements.darkModeToggle.addEventListener('click', toggleDarkMode); // Dark Mode Toggle
+
+        // Event listeners for scenario management
+        // దృశ్య నిర్వహణ కోసం ఈవెంట్ లిజనర్‌లు
+        elements.saveScenarioBtn.addEventListener('click', saveScenario);
+        elements.loadScenarioBtn.addEventListener('click', loadScenario);
+        elements.deleteScenarioBtn.addEventListener('click', deleteScenario);
+
+        // Currency and Tax Regime Selectors
+        // కరెన్సీ మరియు పన్ను విధానం సెలెక్టర్లు
+        elements.currencySelector.addEventListener('change', (event) => {
+            selectedCurrency = event.target.value;
+            updateLivePreview(); // Update live preview immediately
+            // Also update the labels for currency-related inputs
+            // కరెన్సీకి సంబంధించిన ఇన్‌పుట్‌ల లేబుల్‌లను కూడా అప్‌డేట్ చేయండి
+        });
+
+        elements.taxRegimeSelector.addEventListener('change', (event) => {
+            selectedTaxRegime = event.target.value;
+            // No immediate calculation change, but important for saving/future features
+            // తక్షణ గణన మార్పు లేదు, కానీ సేవ్ చేయడం/భవిష్యత్ లక్షణాల కోసం ముఖ్యం
+        });
+
+        // Function to update currency labels on the form
+        // ఫారమ్‌లో కరెన్సీ లేబుల్‌లను అప్‌డేట్ చేయడానికి ఫంక్షన్
+        function updateCurrencyLabels() {
+            const currencySymbol = currencyMap[selectedCurrency].symbol;
+            document.getElementById('selfSalary').previousElementSibling.innerHTML = `Current Monthly Salary (Self) <span class="text-red-500">*</span>`;
+            document.getElementById('spouseSalary').previousElementSibling.innerHTML = `Current Monthly Salary (Spouse)`;
+            document.getElementById('annualRentalIncome').previousElementSibling.innerHTML = `Annual Rental Income`;
+            document.getElementById('otherIncome').previousElementSibling.innerHTML = `Other Annual Income`;
+            document.getElementById('monthlyLivingExpenses').previousElementSibling.innerHTML = `Current Monthly Living Expenses <span class="text-red-500">*</span>`;
+            document.getElementById('annualTravelBudget').previousElementSibling.innerHTML = `Annual Travel Budget`;
+            document.getElementById('annualEducationCostPerChild').previousElementSibling.innerHTML = `Annual Education Cost Per Child`;
+            document.getElementById('weddingBudgetPerChild').previousElementSibling.innerHTML = `Wedding Budget Per Child`;
+            document.getElementById('totalOutstandingLoans').previousElementSibling.innerHTML = `Total Outstanding Loans`;
+            document.getElementById('annualPrepayment').previousElementSibling.innerHTML = `Annual Prepayment (Optional)`;
+            document.getElementById('currentFinancialCorpus').previousElementSibling.innerHTML = `Current Financial Corpus (Equity, FD, PF, NPS etc.) <span class="text-red-500">*</span>`;
+            document.getElementById('realEstateValue').previousElementSibling.innerHTML = `Current Real Estate Value`;
+            document.getElementById('goldOtherAssetValue').previousElementSibling.innerHTML = `Gold/Other Asset Value`;
+        }
+
+
+        // Form navigation buttons
+        // ఫారమ్ నావిగేషన్ బటన్‌లు
+        document.getElementById('nextBtn1').addEventListener('click', nextStep);
+        document.getElementById('prevBtn1').addEventListener('click', prevStep); // Should be hidden initially
+
+        document.getElementById('nextBtn2').addEventListener('click', nextStep);
+        document.getElementById('prevBtn2').addEventListener('click', prevStep);
+
+        document.getElementById('nextBtn3').addEventListener('click', nextStep);
+        document.getElementById('prevBtn3').addEventListener('click', prevStep);
+
+        document.getElementById('nextBtn4').addEventListener('click', nextStep);
+        document.getElementById('prevBtn4').addEventListener('click', prevStep);
+
+        document.getElementById('nextBtn5').addEventListener('click', nextStep);
+        document.getElementById('prevBtn5').addEventListener('click', prevStep);
+
+        document.getElementById('nextBtn6').addEventListener('click', nextStep);
+        document.getElementById('prevBtn6').addEventListener('click', prevStep);
+
+        document.getElementById('prevBtn7').addEventListener('click', prevStep); // Last step only has previous and calculate
+
+        // Auto-save and live preview on input changes (debounce for performance on many inputs)
+        // ఇన్‌పుట్ మార్పులపై ఆటో-సేవ్ మరియు లైవ్ ప్రివ్యూ (అనేక ఇన్‌పుట్‌ల పనితీరు కోసం డీబౌన్స్)
+        let autoSaveTimer;
+        const allInputElements = document.querySelectorAll('.input-group input, .input-group select, .input-group textarea');
+        allInputElements.forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => {
+                    saveCurrentInputs();
+                    updateLivePreview(); // Update live preview on input change
+                }, 500); // Save and update 0.5 seconds after last input
+            });
+        });
+
+        // Handle form submission for feedback (FormSubmit.co)
+        // ఫీడ్‌బ్యాక్ కోసం ఫారమ్ సమర్పణను నిర్వహించండి (FormSubmit.co)
+        elements.feedbackForm.addEventListener('submit', function(event) {
+            let selectedRating = null;
+            elements.ratingInputs.forEach(input => {
+                if (input.checked) {
+                    selectedRating = input.value;
+                }
+            });
+
+            if (!selectedRating) {
+                elements.ratingError.style.display = 'block';
+                event.preventDefault(); // Prevent form submission if no rating is selected
+            } else {
+                elements.ratingError.style.display = 'none';
+                // FormSubmit will handle the actual submission and redirect.
+                // The modal will close automatically due to the page redirect.
+            }
+        });
+
+        // Initial setup on load
+        // లోడ్‌లో ప్రారంభ సెటప్
+        window.onload = function() {
+            // Populate errorElements after all elements are guaranteed to be in the DOM
+            // అన్ని ఎలిమెంట్‌లు DOMలో ఉన్నాయని నిర్ధారించుకున్న తర్వాత errorElementsను నింపండి
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                const errorSpan = document.getElementById(`${input.id}Error`);
+                if (errorSpan) {
+                    errorElements[input.id] = errorSpan;
+                }
+            });
+
+            // Check for dark mode preference from localStorage
+            // స్థానిక నిల్వ నుండి డార్క్ మోడ్ ప్రాధాన్యతను తనిఖీ చేయండి
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'enabled') {
+                isDarkMode = true;
+                document.documentElement.classList.add('dark');
+            } else {
+                isDarkMode = false;
+                document.documentElement.classList.remove('dark');
+            }
+            // Call toggleDarkMode to set the correct initial icon and text
+            toggleDarkMode(); // This will also update the icon and text based on the initial `isDarkMode` value
+
+            loadLastSavedInputs(); // Load the last state
+            updateScenarioList(); // Populate the scenario dropdown
+            showStep(currentStep); // Show the first step
+            updateLivePreview(); // Perform initial live preview calculation
+            elements.resultSection.style.display = 'none'; // Hide full report initially
+            elements.recommendationSection.style.display = 'none'; // Hide recommendations initially
+            elements.chartsContainer.classList.add('hidden'); // Hide charts initially
+            updateCurrencyLabels(); // Update labels on load
+        };
+    </script>
+</body>
+</html>
